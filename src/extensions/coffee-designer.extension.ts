@@ -46,8 +46,9 @@ module.exports = (toolbox: GluegunToolbox) => {
       'coffee-designer/server'
     )
 
-    // Ensure that the temporary server folder is created
+    // Ensure that the temporary server folder and project folder are created
     await filesystem.dirAsync(designerTempServerPath)
+    await filesystem.dirAsync(designerHistoryFolderName)
 
     // Copy the designer template to the temporary server dir
     await filesystem.copyAsync(
@@ -65,7 +66,7 @@ module.exports = (toolbox: GluegunToolbox) => {
        template: 'coffee-designer/start.js',
        target: filesystem.path(designerTempServerPath, 'start.js'),
        props: {
-         diagramFolderName: designerHistoryFolderName,
+         projectDirName: designerHistoryFolderName,
          currentDir: filesystem.cwd().replace(/\\/g, '/')
        }
     });
@@ -79,7 +80,7 @@ module.exports = (toolbox: GluegunToolbox) => {
             designerCSS: designerCssFileName
         }
     })
-
+    
     spinner.text = 'Syncing Coffee Designer Server files...';
 
     try {
@@ -178,6 +179,10 @@ module.exports = (toolbox: GluegunToolbox) => {
     // Read Assets files server dir and download them
     const assetsResponse = 
         await baseRepositoryApiFile.get('dist/assets');
+    const serverAssets = filesystem.path(serverPath, 'assets')
+
+    // Ensure that server assets is created
+    await filesystem.dirAsync(serverAssets)
 
     await _validateResponse(assetsResponse, async () => {
         // Check https://api.github.com/repos/{userName}/{repository}/contents/dist/assets
@@ -187,7 +192,7 @@ module.exports = (toolbox: GluegunToolbox) => {
             
             await _downloadFileToDisk(
                 element.download_url, 
-                filesystem.path(serverPath, `assets/${element.name}`)
+                filesystem.path(serverAssets, element.name)
             );
         }
     });

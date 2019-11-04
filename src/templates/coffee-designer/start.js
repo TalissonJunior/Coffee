@@ -4,9 +4,9 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 
 // App global variables
 let mainWindow
-let currentDiagramVersion = '1.0.0'
-let newDiagramVersion
-const diagramFolderName = '<%= props.diagramFolderName %>'
+let version = '1.0.0'
+let newVersion
+const projectDirName = '<%= props.projectDirName %>'
 const currentDir = '<%= props.currentDir %>'
 
 app.on('ready', () => {
@@ -23,6 +23,7 @@ app.on('ready', () => {
   // Disable menu
   mainWindow.setMenuBarVisibility(false)
   mainWindow.setAutoHideMenuBar(true)
+  mainWindow.maximize();
 
   /// Open index.html
   mainWindow.loadFile(path.resolve(__dirname, 'index.html'))
@@ -33,10 +34,10 @@ ipcMain.on('page:load', () => {
   let latestJson
 
   // Ensure that the directory is created
-  if (!fs.existsSync(path.resolve(currentDir, diagramFolderName))) {
-    fs.mkdirSync(path.resolve(currentDir, diagramFolderName))
+  if (!fs.existsSync(path.resolve(currentDir, projectDirName))) {
+    fs.mkdirSync(path.resolve(currentDir, projectDirName))
   } else {
-    const files = fs.readdirSync(path.resolve(currentDir, diagramFolderName))
+    const files = fs.readdirSync(path.resolve(currentDir, projectDirName))
 
     // Gets the latest file version name;
     for (let index = 0; index < files.length; index++) {
@@ -44,8 +45,8 @@ ipcMain.on('page:load', () => {
       const fileVersion = file.replace('.json', '')
 
       // If current version is less then fileVersion
-      if (compareVersion(currentDiagramVersion, fileVersion) == -1) {
-        currentDiagramVersion = fileVersion
+      if (compareVersion(version, fileVersion) == -1) {
+        version = fileVersion
       }
     }
 
@@ -53,8 +54,8 @@ ipcMain.on('page:load', () => {
       fs.existsSync(
         path.resolve(
           currentDir,
-          diagramFolderName,
-          `${currentDiagramVersion}.json`
+          projectDirName,
+          `${version}.json`
         )
       )
     ) {
@@ -62,8 +63,8 @@ ipcMain.on('page:load', () => {
       latestJson = fs.readFileSync(
         path.resolve(
           currentDir,
-          diagramFolderName,
-          `${currentDiagramVersion}.json`
+          projectDirName,
+          `${version}.json`
         ),
         { encoding: 'utf8' }
       )
@@ -76,14 +77,14 @@ ipcMain.on('page:load', () => {
 // Update version if has change properties and version
 // hasn´t being updated
 ipcMain.on('change', (e, json) => {
-  if (currentDiagramVersion != newDiagramVersion) {
+  if (version != newVersion) {
     updateVersion()
   }
 
   fs.writeFileSync(
     path.resolve(
       currentDir,
-      `${diagramFolderName}/${currentDiagramVersion}.json`
+      `${projectDirName}/${version}.json`
     ),
     json
   )
@@ -94,21 +95,21 @@ ipcMain.on('change:position', (e, json) => {
   fs.writeFileSync(
     path.resolve(
       currentDir,
-      `${diagramFolderName}/${currentDiagramVersion}.json`
+      `${projectDirName}/${version}.json`
     ),
     json
   )
 })
 
 function updateVersion() {
-  let currentVersionArray = currentDiagramVersion.split('.')
+  let currentVersionArray = version.split('.')
   let value = currentVersionArray[currentVersionArray.length - 2]
 
   // increase version
   currentVersionArray[currentVersionArray.length - 2] = parseInt(value) + 1
 
-  currentDiagramVersion = currentVersionArray.join('.')
-  newDiagramVersion = currentDiagramVersion
+  version = currentVersionArray.join('.')
+  newVersion = version
 }
 
 // Return 1 if a > b
