@@ -1,9 +1,7 @@
 import { GluegunToolbox } from 'gluegun'
 import { ApiResponse } from 'apisauce';
 import * as os from 'os';
-import * as fs from 'fs';
-import * as https from 'https';
-import { IncomingMessage } from 'http';
+import { GluegunFileSystemInspectTreeResult, GluegunFileSystemInspectResult } from 'gluegun/build/types/toolbox/filesystem-types';
 
 module.exports = (toolbox: GluegunToolbox) => {
     const { 
@@ -14,11 +12,13 @@ module.exports = (toolbox: GluegunToolbox) => {
         plugin, 
         template: { 
             generate 
-        } 
+        },
+        semver
     } = toolbox
 
     toolbox.designer= { 
-        start: start
+        start: start,
+        hasChangeClassTables: hasChangeClassTables
     } 
 
   async function start() {
@@ -83,6 +83,12 @@ module.exports = (toolbox: GluegunToolbox) => {
     
     spinner.text = 'Syncing Coffee Designer Server files...';
 
+    const ltVersion = await _getLatestDesignerFileVersion();
+
+    if(ltVersion) {
+        await toolbox.localStorage.setValue('lastCoffeeVersion', ltVersion);
+    }
+
     try {
         await syncFiles(
             designerJsFileName,
@@ -126,6 +132,22 @@ module.exports = (toolbox: GluegunToolbox) => {
         }
     }
   
+  }
+
+  /**
+   * It check if that was any change on the generated designer json file
+   */
+  async function hasChangeClassTables(): Promise<boolean> {
+
+    const latestVersion = await toolbox.localStorage.getValue('lastCoffeeVersion');
+    const currentVersion = await _getLatestDesignerFileVersion();
+
+    if(semver.valid(currentVersion) && semver.valid(latestVersion) && 
+        semver.gt(currentVersion, latestVersion)) {
+       return true;
+    }
+    
+    return false;
   }
 
   /**
@@ -190,7 +212,7 @@ module.exports = (toolbox: GluegunToolbox) => {
         for (let index = 0; index < (assetsResponse.data as any).length; index++) {
             const element = assetsResponse.data[index];
             
-            await _downloadFileToDisk(
+            await toolbox.utils.downloadFileToDisk(
                 element.download_url, 
                 filesystem.path(serverAssets, element.name)
             );
@@ -221,24 +243,43 @@ module.exports = (toolbox: GluegunToolbox) => {
     }
   }
 
-   // Get file  from external url and save it to disk, from external url
-   function _downloadFileToDisk(url: string, localPath: string): Promise<IncomingMessage> {
-    return new Promise((resolve, reject) => {
-        https.get(url, (response) => {
-          if(response.statusCode === 200) {
-            const b = fs.createWriteStream(localPath);
+  async function _getLatestDesignerFileVersion() {
+    const projectConfig = await filesystem.readAsync(
+    filesystem.path(filesystem.cwd(), config.project.configFileName)
+    )
+  
+    if(!projectConfig){
+        return null;
+    }
+    
+    const designerVersionFolderName = 
+        JSON.parse(projectConfig).architecture.designer
 
-            b.on('close', () => {
-              resolve(response);
-            });
+    const dirTree = await filesystem.inspectTreeAsync(
+        filesystem.path(designerVersionFolderName)
+    ) as GluegunFileSystemInspectTreeResult;
 
-            response.pipe(b);
-          }
-          else {
-            reject(response);
-          }
-        });
-    });
+    
+    if(!dirTree) {
+        return null;
+    }
+
+    let version = '1.1.0';
+
+    for (let index = 0; index < dirTree.children.length; index++) {
+        const file = dirTree.children[index] as GluegunFileSystemInspectResult;
+
+        if(file.type === 'file') {
+            const fileVersion = file.name.replace('.json','');
+
+            if(semver.valid(fileVersion) && semver.gt(fileVersion, version)) {
+                version = fileVersion;
+            } 
+        }
+    }
+   
+    return version;
   }
+  
   
 }

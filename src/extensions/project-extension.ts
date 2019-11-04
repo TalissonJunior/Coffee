@@ -1,10 +1,7 @@
 import { GluegunToolbox, semver } from 'gluegun'
 import { ProjectType } from '../enums/projectType'
 import { CliProjectConfig } from '../models/cli-project-config'
-import * as fs from 'fs';
-import * as https from 'https';
 import * as os from 'os'
-import { IncomingMessage } from 'http';
 
 module.exports = (toolbox: GluegunToolbox) => {
   const { 
@@ -205,7 +202,10 @@ module.exports = (toolbox: GluegunToolbox) => {
         
         spinner.text = "Downloading dotnet sdk 3.0.100....";
 
-        const response = await _downloadFileToDisk(dotnetCoreInstallerUrlx64, pathToSave);
+        const response = await toolbox.utils.downloadFileToDisk(
+          dotnetCoreInstallerUrlx64, 
+          pathToSave
+        );
 
         spinner.stop();
         
@@ -235,7 +235,10 @@ module.exports = (toolbox: GluegunToolbox) => {
         spinner.text = "Downloading dotnet sdk 3.0.100....";
 
         print.debug(dotnetCoreInstallerUrlx86)
-        const response = await _downloadFileToDisk(dotnetCoreInstallerUrlx86, pathToSave);
+        const response = await toolbox.utils.downloadFileToDisk(
+          dotnetCoreInstallerUrlx86, 
+          pathToSave
+        );
 
         spinner.stop();
         
@@ -264,7 +267,10 @@ module.exports = (toolbox: GluegunToolbox) => {
         
         spinner.text = "Downloading dotnet sdk 3.0.100....";
 
-        const response = await _downloadFileToDisk(dotnetCoreInstallerMacOs, pathToSave);
+        const response = await toolbox.utils.downloadFileToDisk(
+          dotnetCoreInstallerMacOs, 
+          pathToSave
+        );
 
         spinner.stop();
 
@@ -324,25 +330,5 @@ module.exports = (toolbox: GluegunToolbox) => {
 
     // remove special characters except '.' and ',';
     return angularVersion.replace(/[&\/\\#+()$~%'":*?<>{}]/g, '')
-  }
-
-  // Get file  from external url and save it to disk, from external url
-  function _downloadFileToDisk(url: string, localPath: string): Promise<IncomingMessage> {
-    return new Promise((resolve, reject) => {
-        https.get(url, (response) => {
-          if(response.statusCode === 200) {
-            const b = fs.createWriteStream(localPath);
-
-            b.on('close', () => {
-              resolve(response);
-            });
-
-            response.pipe(b);
-          }
-          else {
-            reject(response);
-          }
-        });
-    });
   }
 }

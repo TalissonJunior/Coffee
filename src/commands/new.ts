@@ -94,7 +94,7 @@ module.exports = {
       filesystem.path(strings.kebabCase(backendProjectName))
     )
 
-    if (alreadyExistsFrontend) {
+    if (alreadyExistsFrontend && type === ProjectType.angular) {
       print.info(
         `${print.xmark} Already exists a project with name ${strings.kebabCase(
           frontendProjectName
@@ -102,7 +102,7 @@ module.exports = {
       )
       spinner.stop()
       return
-    } else if (alreadyExistsBackend) {
+    } else if (alreadyExistsBackend && type === ProjectType.dotnetCore) {
       print.info(
         `${print.xmark} Already exists a project with name ${strings.kebabCase(
           backendProjectName
