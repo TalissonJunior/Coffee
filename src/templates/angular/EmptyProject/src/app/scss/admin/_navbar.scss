@@ -1,0 +1,32 @@
+.navbar {
+    height: $navbar-height;
+    z-index: 1;
+    box-shadow: 8px 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+
+    &.navbar-admin {
+        position: absolute;
+        left: $sidebar-width;
+        width: calc(100% - #{$sidebar-width});
+    }
+
+    .navbar-toggler-icon {
+        display: none;
+        cursor: pointer;
+    }
+}
+
+
+@media (max-width: 720px) { 
+    .navbar {
+
+        &.navbar-admin {
+            position: absolute;
+            width: 100%;
+            left: 0;
+        }
+
+        .navbar-toggler-icon {
+            display: inherit;
+        }
+    }
+}

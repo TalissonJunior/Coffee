@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Coffee Designer</title>
+    <link rel="stylesheet" href="./<%= props.designerCSS %>">
+
+    <script src="./<%= props.designerJS %>"></script>
+</head>
+<body>
+
+    <script>
+        const electron = require('electron');
+        const {ipcRenderer} = electron;
+        const coffeeDesigner = CoffeeDesigner.init("body");
+        
+        // Catch data sended from cli when page has been loaded
+        ipcRenderer.on('page:load', (e, json) => {
+            if(json) {
+                coffeeDesigner.fromJson(JSON.parse(json));
+            }
+        });
+
+        // Listen to property and method changes
+        coffeeDesigner.on([
+            'change:name', 
+            'change:property'
+        ], 
+            () => {
+            const json = JSON.stringify(coffeeDesigner.toJson());
+            ipcRenderer.send('change', json);
+        });
+
+        // Listen to position
+        coffeeDesigner.on('change:position', () => {
+            const json = JSON.stringify(coffeeDesigner.toJson());
+            ipcRenderer.send('change:position', json);
+        });
+
+        // Notify cli when page has been loaded; 
+        setTimeout(() => {
+            ipcRenderer.send('page:load', 'loaded');
+        }, 300);
+
+    </script>
+
+</body>
+</html>

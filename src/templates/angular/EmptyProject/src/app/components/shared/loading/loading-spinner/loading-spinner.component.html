@@ -1,0 +1,14 @@
+<div
+  *ngIf="loadingService.isVisible()"
+  class="overlay"
+  [style.background-color]="fullScreen == false ? '' : bdColor"
+  [style.position]="fullScreen == false ? 'absolute' : ''"
+>
+  <div class="{{ class }}">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+  <div class="loading-text"></div>
+</div>

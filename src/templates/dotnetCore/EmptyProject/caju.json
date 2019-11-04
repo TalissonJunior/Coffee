@@ -1,0 +1,10 @@
+{
+  "origin": "https://github.com/ivanpaulovich/emptyproject/",
+  "architecture-style": "architecture-style",
+  "use-cases": "basic",
+  "user-interface": "webapi",
+  "data-access": "entityframework",
+  "tips": "True",
+  "skip-restore": "False",
+  "service-bus": "service-bus"
+}

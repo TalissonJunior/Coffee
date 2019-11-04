@@ -1,0 +1,12 @@
+{
+  "architecture": {
+    "type": "DotnetCore",
+    "name": "EmptyProject",
+    "designer": "EmptyProject.CoffeDesigner",
+    "webapi": "EmptyProject.WebApi",
+    "application": "EmptyProject.Application",
+    "domain": "EmptyProject.Domain",
+    "infrastructure": "EmptyProject.Infrastructure",
+    "test": "EmptyProject.Test"
+  }
+}

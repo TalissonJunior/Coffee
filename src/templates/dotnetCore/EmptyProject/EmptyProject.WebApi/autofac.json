@@ -1,0 +1,19 @@
+﻿{
+  "defaultAssembly": "EmptyProject.Infrastructure",
+  "modules": [
+    {
+      "type": "EmptyProject.Infrastructure.Modules.WebApiModule",
+      "properties": {}
+    },
+    {
+      "type": "EmptyProject.Infrastructure.Modules.ApplicationModule",
+      "properties": {}
+    },
+    {
+      "type": "EmptyProject.Infrastructure.EntityFrameworkDataAccess.Module",
+      "properties": {
+        "ConnectionString": "Server=(LocalDB)\\MSSQLLocalDB;Database=EmptyProjectDb;Integrated Security=true;"
+      }
+    }
+  ]
+}
