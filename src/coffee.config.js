@@ -2,6 +2,7 @@ module.exports = {
   angularCLIVersion: '7.3.8',
   dotnetCoreCLIVersion: '3.0.0',
   electronCLIVersion: '7.0.1',
+  prettierCliVersion: '1.18.2',
   project: {
     frontendSuffix: 'frontend',
     backendSuffix: 'backend',

@@ -1,0 +1,29 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace <%= props.projectName %>.Infrastructure.Entities
+{
+    [Table("<%= props.classTable.tableName %>")]
+    public sealed class <%= props.classTable.name %> : BaseEntity
+    {
+    <% props.classTable.properties.forEach(function(property){ %>
+        
+        <% if (property.isForeignKey) { %> 
+            public <%= property.foreign.table %> <%= property.foreign.classProperty %> { get; set; }
+        <% } %>
+
+        <% if (property.isForeignKey) { %>
+            [ForeignKey("<%= property.foreign.classProperty %>")] 
+        <% } %>
+    
+        [Column("<%= property.columnName %>")]
+        <% if (property.isRequired) { %>
+            [Required] <% } 
+        %>
+        public <%= property.type %> <%= property.name %> { get; set; }
+        
+    <% }); %>
+    }
+}

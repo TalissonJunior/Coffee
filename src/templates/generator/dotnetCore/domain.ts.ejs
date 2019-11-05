@@ -1,0 +1,92 @@
+using System;
+using System.Text.RegularExpressions;
+
+namespace <%= props.projectName %>.<%= props.classTable.name %>
+{
+    public sealed class <%= props.classTable.name %>
+    {
+        <% props.classTable.properties.forEach(function(property, index){ %>
+            <% if (property.isForeignKey) { %> 
+                public <%= property.foreign.table %>.<%= property.foreign.table %> <%= property.foreign.classProperty %> { get; private set; }
+            <% } else {%>
+                public <%= property.type %> <%= property.name %> { get; private set; }
+            <% } %>
+        <% }); %>
+
+        public <%= props.classTable.name %>(
+        <% props.classTable.properties.forEach(function(property, index){ %>
+            <% if (property.isRequired) { %>  
+                <% if(property.isForeignKey) { %> 
+                    <%= property.foreign.table %>.<%= property.foreign.table %> 
+                    <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %> 
+                    <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
+                <% } else { %>
+                    <%= property.type %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> 
+                    <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
+                <% } %>
+            <% } else { %>
+                <% if(property.isForeignKey) { %> 
+                    <%= property.foreign.table %>.<%= property.foreign.table %> 
+                    <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %> = null
+                    <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
+                <% } else { %>
+                    <%= property.type %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> = null
+                    <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
+                <% } %>
+            <% } %>
+        <% }); %>
+        )
+        {
+        <% props.classTable.properties.forEach(function(property){ %>
+            <% if (property.isPrimaryKey && property.type == 'Guid') { %>
+                <%= property.name %> = <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> ?? Guid.NewGuid();
+            <% } else {%>   
+                <% if(property.isForeignKey) { %> 
+                    <%= property.foreign.classProperty %> =  <%= property.foreign.classProperty.toLowerCase() %>;
+                <% } else { %>
+                    <%= property.name %> = <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>;
+                <% } %>
+            <% } %>   
+        <% }); %>
+        }
+        
+        <% props.classTable.properties.forEach(function(property){ %>
+            <% if (property.hasChangeMethod) { %>
+                
+                <% if (property.type == 'bool') { %>
+                    <% if (property.isForeignKey) { %> 
+                        public void Set<%= property.foreign.classProperty %>(<%= property.foreign.table %>.<%= property.foreign.table %> 
+                        <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %>)
+                    <% } else { %>
+                        public void Set<%= property.name %>(<%= property.type %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>)
+                    <% } %>
+                <% } else {%>
+                    <% if (property.isForeignKey) { %> 
+                        public void Change<%= property.foreign.classProperty %>(<%= property.foreign.table %>.<%= property.foreign.table %> 
+                        <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %>)
+                    <% } else { %>
+                        public void Change<%= property.name %>(<%= property.type %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>)
+                    <% } %>
+                <% } %>
+            {
+                <% if (property.isForeignKey) { %> 
+                    <% if (property.type != 'bool') { %> 
+                        if (<%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %> == null)
+                            throw new ArgumentNullException("<%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %> cannot be null.");
+                    <% } %>
+
+                    <%= property.foreign.classProperty %> = <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %>;
+                <% } else { %>
+
+                    <% if (property.type != 'bool') { %> 
+                        if (<%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> == null)
+                            throw new ArgumentNullException("<%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> cannot be null.");
+                    <% } %>
+
+                    <%= property.name %> = <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>;
+                <% } %>
+            }
+            <% } %>
+        <% }); %>
+    }
+}

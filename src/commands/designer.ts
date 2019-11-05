@@ -10,7 +10,8 @@ module.exports = {
       project,
       config,
       designer,
-      prompt
+      prompt,
+      dotnetcore
     } = toolbox
 
     const projectConfigFile = (await project.isInsideDotnetCore()) as CliProjectConfig
@@ -42,7 +43,6 @@ module.exports = {
         
         return;
       }
-
       
       const requiredResult = await prompt.ask([
         {
@@ -64,7 +64,8 @@ module.exports = {
         return;
       }
 
-      // Todo Update Project
+      // Generate entities
+      await dotnetcore.updateEntities();
     }
     else {
       print.info('Failed to install .Net Core dependencies...')

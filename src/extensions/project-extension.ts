@@ -58,13 +58,16 @@ module.exports = (toolbox: GluegunToolbox) => {
   async function checkDependencies(projectType: ProjectType) {
     switch (projectType) {
       case ProjectType.angular:
+        await _checkPrettierDependencies();
         return _checkAngularDependencies()
       case ProjectType.dotnetCore:
         await _checkElectronDependencies()
+        await _checkPrettierDependencies();
         return _checkDotnetCoreDependencies();
       default:
         await _checkDotnetCoreDependencies()
         await _checkElectronDependencies()
+        await _checkPrettierDependencies();
         return _checkAngularDependencies()
     }
   }
@@ -98,7 +101,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     }
   }
 
-  // Cli depends on electron to promp diagram
+  // Cli depends on electron to promp coffee designer
   async function _checkElectronDependencies() {
     const spinner = print.spin('Checking cli dependencies...')
 
@@ -123,6 +126,36 @@ module.exports = (toolbox: GluegunToolbox) => {
       // Electron not installed
       spinner.text = `Installing @electron@${config.electronCLIVersion}`
       await _installUpdateElectronCli()
+      spinner.stop()
+      return false
+    }
+  }
+
+  // Cli depends on electron to promp format the generated code
+  async function _checkPrettierDependencies() {
+    const spinner = print.spin('Checking cli dependencies...')
+
+    try {
+      const prettierResult = await toolbox.system.run('prettier --version', {
+        trim: true
+      })
+
+      const installedPrettierVersion = prettierResult
+        .replace('V', '')
+        .replace('v', '')
+
+      // if the required version is bigger then the installed one, update the installed version
+      if (semver.gt(config.prettierCliVersion, installedPrettierVersion)) {
+        spinner.text = `Updating prettier version from @${installedPrettierVersion} to @${config.prettierCliVersion}`
+        await _installUpdatePrettierCli()
+      }
+
+      spinner.stop()
+      return true
+    } catch (e) {
+      // Prettier not installed
+      spinner.text = `Installing @prettier@${config.prettierCliVersion}`
+      await _installUpdatePrettierCli()
       spinner.stop()
       return false
     }
@@ -170,10 +203,20 @@ module.exports = (toolbox: GluegunToolbox) => {
     )
   }
 
-  // Used to promp diagram
+  // Used to promp coffee designer
   async function _installUpdateElectronCli() {
     await toolbox.system.run(
       `npm install -g electron@${config.electronCLIVersion}`,
+      {
+        trim: true
+      }
+    )
+  }
+
+  // Used to format generted code
+  async function _installUpdatePrettierCli() {
+    await toolbox.system.run(
+      `npm install -g prettier@${config.prettierCliVersion} prettier-plugin-csharp`,
       {
         trim: true
       }

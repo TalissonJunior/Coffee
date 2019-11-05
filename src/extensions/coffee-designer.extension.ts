@@ -2,6 +2,7 @@ import { GluegunToolbox } from 'gluegun'
 import { ApiResponse } from 'apisauce';
 import * as os from 'os';
 import { GluegunFileSystemInspectTreeResult, GluegunFileSystemInspectResult } from 'gluegun/build/types/toolbox/filesystem-types';
+import { ClassTable } from '../models/class-table/class-table';
 
 module.exports = (toolbox: GluegunToolbox) => {
     const { 
@@ -18,7 +19,8 @@ module.exports = (toolbox: GluegunToolbox) => {
 
     toolbox.designer= { 
         start: start,
-        hasChangeClassTables: hasChangeClassTables
+        hasChangeClassTables: hasChangeClassTables,
+        getClassTables: getClassTables
     } 
 
   async function start() {
@@ -151,6 +153,35 @@ module.exports = (toolbox: GluegunToolbox) => {
   }
 
   /**
+   * Returns an array with the latest class tables from version folder
+   */
+  async function getClassTables(): Promise<Array<ClassTable>> {
+    const currentVersion = await _getLatestDesignerFileVersion();
+
+    const projectConfig = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), config.project.configFileName)
+    )
+  
+    if(!projectConfig){
+        return null;
+    }
+    
+    const designerVersionFolderName = 
+        JSON.parse(projectConfig).architecture.designer
+
+    const jsonData = await filesystem.readAsync(filesystem.path(
+        designerVersionFolderName, 
+        currentVersion + '.json'
+    ));
+
+    if(!jsonData) {
+        return [];
+    }
+
+    return JSON.parse(jsonData).data.classTables;
+  }
+
+  /**
    * It will try to download remote files to the local server folder,
    * If it fails and already has files on the server, then it will use the local
    * files otherwise will show an error saying that it fails to access 
@@ -245,7 +276,7 @@ module.exports = (toolbox: GluegunToolbox) => {
 
   async function _getLatestDesignerFileVersion() {
     const projectConfig = await filesystem.readAsync(
-    filesystem.path(filesystem.cwd(), config.project.configFileName)
+        filesystem.path(filesystem.cwd(), config.project.configFileName)
     )
   
     if(!projectConfig){
