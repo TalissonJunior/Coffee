@@ -65,7 +65,7 @@ module.exports = {
       }
 
       // Generate entities
-      await dotnetcore.updateEntities();
+      await dotnetcore.updateEntitiesAndContext();
     }
     else {
       print.info('Failed to install .Net Core dependencies...')

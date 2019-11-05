@@ -1,18 +1,32 @@
-﻿using EmptyProject.Infrastructure.EntityFrameworkDataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using <%= props.projectName %>.Infrastructure.Entities;
 
-namespace EmptyProject.Infrastructure.EntityFrameworkDataAccess
+namespace <%= props.projectName %>.Infrastructure.EntityFrameworkDataAccess
 {
     public class Context : DbContext
     {
-        public Context(DbContextOptions options) : base(options) {}
+        <% props.classTables.forEach(function(classTable, index){ %>
+            public virtual DbSet<<%= classTable.name %>> <%= classTable.name %>s { get; set; }
+        <% }); %>
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // set all decimal types with (10,2) precision
+            foreach (var property in modelBuilder.Model.GetEntityTypes()
+            .SelectMany(t => t.GetProperties())
+            .Where(p => p.ClrType == typeof(decimal)))
+            {
+                property.Relational().ColumnType = "decimal(10, 2)";
+            }
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseMySql("connectionUrl");
         }
 
         public override int SaveChanges()
@@ -38,8 +52,7 @@ namespace EmptyProject.Infrastructure.EntityFrameworkDataAccess
 
         private void AddTimestamps()
         {
-            var entities = ChangeTracker.Entries().Where(x => x.Entity is BaseEntity 
-             && (x.State == EntityState.Added || x.State == EntityState.Modified));
+            var entities = ChangeTracker.Entries().Where(x => x.Entity is BaseEntity && (x.State == EntityState.Added || x.State == EntityState.Modified));
 
             foreach (var entity in entities)
             {

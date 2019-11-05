@@ -11,14 +11,14 @@ module.exports = (toolbox: GluegunToolbox) => {
     } = toolbox
 
     toolbox.dotnetcore =  {
-        updateEntities: updateEntities,
+        updateEntitiesAndContext: updateEntitiesAndContext,
         updateDomains: updateDomains
     };
 
   /**
    * Update dotnet core entities, and context
    */
-  async function updateEntities() {
+  async function updateEntitiesAndContext() {
     const classTables =  await toolbox.designer.getClassTables();
 
     if(!classTables) {
@@ -56,11 +56,26 @@ module.exports = (toolbox: GluegunToolbox) => {
         });
     }
 
-    // Format entities files
-    await toolbox.system.run(
+    // Create context
+    const entityFrameworkFolderPath = filesystem.path(
+        infrastructure, 
+        'EntityFrameworkDataAccess'
+    );
+
+    await generate({
+        template: 'generator/dotnetCore/context.ts.ejs',
+        target: filesystem.path(entityFrameworkFolderPath, 'Context.cs'),
+        props: {
+            classTables: classTables,
+            projectName: JSON.parse(projectConfig).architecture.name
+        }
+    });
+
+     // Format entities files
+     await toolbox.system.run(
         'prettier --print-width 80 --no-semi --single-quote ' + 
         ' --trailing-comma --write ' + 
-        JSON.parse(projectConfig).architecture.infrastructure + '/**/*.cs'
+        JSON.parse(projectConfig).architecture.infrastructure + '/EntityFrameworkDataAccess/**/*.cs'
     )
   }
 

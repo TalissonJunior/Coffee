@@ -8,7 +8,7 @@ module.exports = {
       dotnetcore
     } = toolbox
 
-    await dotnetcore.updateEntities();
+    await dotnetcore.updateEntitiesAndContext();
     await dotnetcore.updateDomains();
   }
 }
