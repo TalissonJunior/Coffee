@@ -10,20 +10,24 @@ namespace <%= props.projectName %>.Infrastructure.Entities
     {
     <% props.classTable.properties.forEach(function(property){ %>
         
-        <% if (property.isForeignKey) { %> 
-            public <%= property.foreign.table %> <%= property.foreign.classProperty %> { get; set; }
-        <% } %>
+        <% if (!(property.name.toLowerCase() == 'id' && property.isPrimaryKey
+            && property.type == 'Guid')) { %> 
 
-        <% if (property.isForeignKey) { %>
-            [ForeignKey("<%= property.foreign.classProperty %>")] 
-        <% } %>
-    
-        [Column("<%= property.columnName %>")]
-        <% if (property.isRequired) { %>
-            [Required] <% } 
-        %>
-        public <%= property.type %> <%= property.name %> { get; set; }
+            <% if (property.isForeignKey) { %> 
+                public <%= property.foreign.table %> <%= property.foreign.classProperty %> { get; set; }
+            <% } %>
+
+            <% if (property.isForeignKey) { %>
+                [ForeignKey("<%= property.foreign.classProperty %>")] 
+            <% } %>
         
+            [Column("<%= property.columnName %>")]
+            <% if (property.isRequired) { %>
+                [Required] <% } 
+            %>
+            public <%= property.type %> <%= property.name %> { get; set; }
+        
+        <% } %>
     <% }); %>
     }
 }

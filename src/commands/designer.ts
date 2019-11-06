@@ -63,9 +63,18 @@ module.exports = {
         print.info(' coffee update');
         return;
       }
+      
+      const spinner = print.spin();
+      spinner.start();
 
-      // Generate entities
+      spinner.text = 'Updating project...';
+
       await dotnetcore.updateEntitiesAndContext();
+      await dotnetcore.updateDomains();
+
+      spinner.stop();
+      print.newline();
+      print.info(`${print.checkmark} Project was successfully updated`);
     }
     else {
       print.info('Failed to install .Net Core dependencies...')

@@ -3,6 +3,7 @@ import { ApiResponse } from 'apisauce';
 import * as os from 'os';
 import { GluegunFileSystemInspectTreeResult, GluegunFileSystemInspectResult } from 'gluegun/build/types/toolbox/filesystem-types';
 import { ClassTable } from '../models/class-table/class-table';
+import * as _ from 'lodash';
 
 module.exports = (toolbox: GluegunToolbox) => {
     const { 
@@ -178,7 +179,55 @@ module.exports = (toolbox: GluegunToolbox) => {
         return [];
     }
 
-    return JSON.parse(jsonData).data.classTables;
+    const currentClassTables = JSON.parse(jsonData).data.classTables as Array<ClassTable>;
+
+    // Check for middle tables
+    for (let index = 0; index < currentClassTables.length; index++) {
+        const classTable = currentClassTables[index];
+
+        const countForeignKeys = _.sumBy(classTable.properties, (property) => property.isForeignKey);
+        currentClassTables[index].isMiddleTable = countForeignKeys === 2 ? true : false;
+    }  
+
+    // Check for associations based on middle tables
+    const middleTables = currentClassTables.filter((classTable) => classTable.isMiddleTable);
+    
+    if(middleTables.length > 0) {
+        for (let index = 0; index < currentClassTables.length; index++) {
+            const classTable = currentClassTables[index];
+            
+            for (let j = 0; j < middleTables.length; j++) {
+                const middleTable = middleTables[j];
+                
+                // Check if the current class table is not a middle table
+                if(!classTable.isMiddleTable) {
+                   const foreignProperty = middleTable.properties
+                    .filter(mt=> mt.isForeignKey )
+                    .find((mt) => mt.foreign.table === classTable.name);
+
+                   // Check if the current class table has a relation with the middle table
+                   if(foreignProperty) {
+                        currentClassTables[index].hasRelations = true;
+
+                        if(!currentClassTables[index].tableRelations) {
+                            currentClassTables[index].tableRelations = new Array<ClassTable>();
+                        }
+
+                        if(!middleTable.firstMiddleTablePropety) {
+                            middleTable.firstMiddleTablePropety = foreignProperty;
+                        } 
+                        else {
+                            middleTable.secondMiddleTablePropety = foreignProperty;
+                        }
+                        
+                        currentClassTables[index].tableRelations.push(middleTable);
+                   }
+                }
+            }
+        }  
+    }
+
+    return currentClassTables;
   }
 
   /**

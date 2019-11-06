@@ -15,6 +15,24 @@ namespace <%= props.projectName %>.Infrastructure.EntityFrameworkDataAccess
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            
+            <% props.middleTables.forEach(function(middleTable, index){ %>
+
+            // <%= middleTable.name %>
+            modelBuilder.Entity<<%= middleTable.name %>>()
+                .HasKey(e => new { e.<%= middleTable.firstMiddleTablePropety.name %>, e.<%= middleTable.secondMiddleTablePropety.name %> });
+
+            modelBuilder.Entity<<%= middleTable.name %>>()
+                .HasOne<<%= middleTable.firstMiddleTablePropety.foreign.classProperty %>>(e => e.<%= middleTable.firstMiddleTablePropety.foreign.table %>)
+                .WithMany(e => e.<%= middleTable.name %>s)
+                .HasForeignKey(e => e.<%= middleTable.firstMiddleTablePropety.name %>);
+
+            modelBuilder.Entity<<%= middleTable.name %>>()
+                .HasOne<<%= middleTable.secondMiddleTablePropety.foreign.classProperty %>>(e => e.<%= middleTable.secondMiddleTablePropety.foreign.table %>)
+                .WithMany(e => e.<%= middleTable.name %>s)
+                .HasForeignKey(e => e.<%= middleTable.secondMiddleTablePropety.name %>);
+            <% }); %>
+
             // set all decimal types with (10,2) precision
             foreach (var property in modelBuilder.Model.GetEntityTypes()
             .SelectMany(t => t.GetProperties())

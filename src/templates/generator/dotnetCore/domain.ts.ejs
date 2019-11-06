@@ -13,6 +13,24 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
             <% } %>
         <% }); %>
 
+        <% props.middleTables.forEach(function(middleTable) { %>
+            <% if (middleTable.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+                private List<<%= middleTable.firstMiddleTablePropety.foreign.table %>> <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s;
+                public IReadOnlyCollection<<%= middleTable.firstMiddleTablePropety.foreign.table %>> <%= middleTable.firstMiddleTablePropety.foreign.table %>s
+                {
+                    get { return <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s; }
+                }
+                
+            <% } else { %> 
+                private List<<%= middleTable.secondMiddleTablePropety.foreign.table %>> <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s;
+                public IReadOnlyCollection<<%= middleTable.secondMiddleTablePropety.foreign.table %>> <%= middleTable.secondMiddleTablePropety.foreign.table %>s
+                {
+                    get { return <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s; }
+                }
+            <% } %>
+
+        <% }); %>
+
         public <%= props.classTable.name %>(
         <% props.classTable.properties.forEach(function(property, index){ %>
             <% if (property.isRequired) { %>  
@@ -35,6 +53,16 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
                 <% } %>
             <% } %>
         <% }); %>
+
+        <% props.middleTables.forEach(function(middleTable) { %>
+            <% if (middleTable.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+                , List<<%= middleTable.firstMiddleTablePropety.foreign.table %>> <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s = null
+                
+            <% } else { %> 
+                , List<<%= middleTable.secondMiddleTablePropety.foreign.table %>> <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s = null
+            <% } %>
+
+        <% }); %>
         )
         {
         <% props.classTable.properties.forEach(function(property){ %>
@@ -48,6 +76,22 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
                 <% } %>
             <% } %>   
         <% }); %>
+
+        <% props.middleTables.forEach(function(middleTable) { %>
+            <% if (middleTable.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+                this. <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s =  
+                <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s != null ?
+                <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s : 
+                new List<<%= middleTable.firstMiddleTablePropety.foreign.table %>>();
+            <% } else { %> 
+                this. <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s =  
+                <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s != null ?
+                <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s : 
+                new List<<%= middleTable.secondMiddleTablePropety.foreign.table %>>();
+            <% } %>
+
+        <% }); %>
+        
         }
         
         <% props.classTable.properties.forEach(function(property){ %>
@@ -87,6 +131,77 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
                 <% } %>
             }
             <% } %>
+        <% }); %>
+
+        <% props.middleTables.forEach(function(middleTable) { %>
+            <% if (middleTable.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+
+                public void Add<%= middleTable.firstMiddleTablePropety.foreign.table %>(
+                    <%= middleTable.firstMiddleTablePropety.foreign.table %>.<%= middleTable.firstMiddleTablePropety.foreign.table %>  
+                    <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>)
+                {
+                    if (<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %> == null)
+                        throw new ArgumentException("<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %> cannot be null", nameof(<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>));
+    
+                    <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s.Add(<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>);
+                }
+    
+                public void Remove<%= middleTable.firstMiddleTablePropety.foreign.table %>(Guid <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>Id)
+                {
+                    if (<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>Id == null)
+                        throw new ArgumentException("<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>Id cannot be null", nameof(<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>Id));
+    
+                    var index = <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s.FindIndex(
+                        <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %> => 
+                        <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>.Id.Equals(<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>Id));
+    
+                    if (index < 0)
+                    {
+                        throw new ArgumentNullException("Could not remove <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>", nameof(<%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>Id));
+                    }
+    
+                    <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s.RemoveAt(index);
+                }
+                
+                public void RemoveAll<%= middleTable.firstMiddleTablePropety.foreign.table %>s()
+                {
+                    <%= middleTable.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.firstMiddleTablePropety.foreign.table.slice(1) %>s.Clear();
+                }
+
+            <% } else { %> 
+                public void Add<%= middleTable.secondMiddleTablePropety.foreign.table %>(
+                    <%= middleTable.secondMiddleTablePropety.foreign.table %>.<%= middleTable.secondMiddleTablePropety.foreign.table %>  
+                    <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>)
+                {
+                    if (<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %> == null)
+                        throw new ArgumentException("<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %> cannot be null", nameof(<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>));
+    
+                    <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s.Add(<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>);
+                }
+    
+                public void Remove<%= middleTable.secondMiddleTablePropety.foreign.table %>(Guid <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>Id)
+                {
+                    if (<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>Id == null)
+                        throw new ArgumentException("<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>Id cannot be null", nameof(<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>Id));
+    
+                    var index = <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s.FindIndex(
+                        <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %> => 
+                        <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>.Id.Equals(<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>Id));
+    
+                    if (index < 0)
+                    {
+                        throw new ArgumentNullException("Could not remove <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>", nameof(<%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>Id));
+                    }
+    
+                    <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s.RemoveAt(index);
+                }
+                
+                public void RemoveAll<%= middleTable.secondMiddleTablePropety.foreign.table %>s()
+                {
+                    <%= middleTable.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + middleTable.secondMiddleTablePropety.foreign.table.slice(1) %>s.Clear();
+                }
+            <% } %>
+          
         <% }); %>
     }
 }

@@ -19,9 +19,16 @@ module.exports = (toolbox: GluegunToolbox) => {
    * Update dotnet core entities, and context
    */
   async function updateEntitiesAndContext() {
+    const spinner = print.spin();
+    spinner.start();
+    print.newline();
+
+    spinner.text = 'Getting class tables...';
+
     const classTables =  await toolbox.designer.getClassTables();
 
     if(!classTables) {
+        spinner.stop();
         print.info('There is no class tables to update entities.');
         return;
     }
@@ -31,10 +38,13 @@ module.exports = (toolbox: GluegunToolbox) => {
     )
   
     if(!projectConfig){
+        spinner.stop();
         print.info(`Coudn´t find the ${config.project.configFileName} file`);
         return;
     }
-    
+
+    spinner.text = 'Generating Entities...';
+
     // Get infrastructure folder
     const infrastructure = 
         JSON.parse(projectConfig).architecture.infrastructure;
@@ -54,7 +64,12 @@ module.exports = (toolbox: GluegunToolbox) => {
                 projectName: JSON.parse(projectConfig).architecture.name
             }
         });
+
+        print.info(`${print.checkmark} Created: ${filesystem.path(entitiesFolderPath, classTable.name + '.cs')}`);
     }
+
+    
+    spinner.text = 'Generating Context...';
 
     // Create context
     const entityFrameworkFolderPath = filesystem.path(
@@ -67,16 +82,21 @@ module.exports = (toolbox: GluegunToolbox) => {
         target: filesystem.path(entityFrameworkFolderPath, 'Context.cs'),
         props: {
             classTables: classTables,
+            middleTables: classTables.filter((ct) => ct.isMiddleTable),
             projectName: JSON.parse(projectConfig).architecture.name
         }
     });
+    
+    print.info(`${print.checkmark} Created: ${filesystem.path(entityFrameworkFolderPath, 'Context.cs')}`);
 
-     // Format entities files
-     await toolbox.system.run(
+      // Format entities files
+    await toolbox.system.run(
         'prettier --print-width 80 --no-semi --single-quote ' + 
         ' --trailing-comma --write ' + 
-        JSON.parse(projectConfig).architecture.infrastructure + '/EntityFrameworkDataAccess/**/*.cs'
+        JSON.parse(projectConfig).architecture.infrastructure + '/**/*.cs'
     )
+    
+    spinner.stop();
   }
 
   
@@ -84,9 +104,16 @@ module.exports = (toolbox: GluegunToolbox) => {
    * Update dotnet core domains, and context
    */
   async function updateDomains() {
+    const spinner = print.spin();
+    spinner.start();
+    print.newline();
+
+    spinner.text = 'Getting class tables...';
+
     const classTables =  await toolbox.designer.getClassTables();
 
     if(!classTables) {
+        spinner.stop();
         print.info('There is no class tables to update domains.');
         return;
     }
@@ -99,9 +126,12 @@ module.exports = (toolbox: GluegunToolbox) => {
     )
   
     if(!projectConfig){
+        spinner.stop();
         print.info(`Coudn´t find the ${config.project.configFileName} file`);
         return;
     }
+
+    spinner.text = 'Generating Domains...';
 
     const domain = 
         JSON.parse(projectConfig).architecture.domain;
@@ -109,30 +139,40 @@ module.exports = (toolbox: GluegunToolbox) => {
 
     // Ensure that server assets is created
     await filesystem.dirAsync(domainsFolderPath)
-
+    
     for (let index = 0; index < classTables.length; index++) {
         const classTable = classTables[index];
-        
-        // Create folder class directory
-        const folderPath = filesystem.path(domainsFolderPath, classTable.name);
-        await filesystem.dirAsync(folderPath);
 
-        await generate({
-            template: 'generator/dotnetCore/domain.ts.ejs',
-            target: filesystem.path(folderPath, classTable.name + '.cs'),
-            props: {
-                classTable: classTable,
-                projectName: JSON.parse(projectConfig).architecture.domain
-            }
-        });
+        if(!classTable.isMiddleTable) {
+            // Create folder class directory
+            const folderPath = filesystem.path(domainsFolderPath, classTable.name);
+            await filesystem.dirAsync(folderPath);
+
+            await generate({
+                template: 'generator/dotnetCore/domain.ts.ejs',
+                target: filesystem.path(folderPath, classTable.name + '.cs'),
+                props: {
+                    classTable: classTable,
+                    middleTables: classTables.filter((ct) => ct.isMiddleTable),
+                    projectName: JSON.parse(projectConfig).architecture.domain
+                }
+            });
+
+            print.info(`${print.checkmark} Created: ${filesystem.path(folderPath, classTable.name + '.cs')}`);
+        }
+        
     }
     
+    spinner.text = 'Fomarting Domains...';
+
     // Format domain files
     await toolbox.system.run(
         'prettier --print-width 80 --no-semi --single-quote ' + 
         ' --trailing-comma --write ' + 
         JSON.parse(projectConfig).architecture.domain + '/**/*.cs'
     )
+
+    spinner.stop();
   }
 
 }

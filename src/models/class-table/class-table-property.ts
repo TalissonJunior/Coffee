@@ -1,4 +1,5 @@
 import { ClassTablePropertyType } from "./class-table-property-type";
+import { ClassTableForeignKey } from "./class-table-foreign";
 
 export interface ClassTableProperty {
     name: string;
@@ -9,4 +10,5 @@ export interface ClassTableProperty {
     isPrimaryKey: boolean;
     isRequired: boolean;
     hasChangeMethod: boolean;
+    foreign: ClassTableForeignKey;
 }
