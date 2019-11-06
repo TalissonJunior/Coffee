@@ -14,35 +14,42 @@
     <script>
         const electron = require('electron');
         const {ipcRenderer} = electron;
-        const coffeeDesigner = CoffeeDesigner.init("body");
         
         // Catch data sended from cli when page has been loaded
-        ipcRenderer.on('page:load', (e, json) => {
+        ipcRenderer.on('page:load', (e, json, projectName) => {
+
+            const coffeeDesigner = CoffeeDesigner.init({
+                projectName: projectName,
+                onClose: () => {
+                    ipcRenderer.send('app:quit');
+                }
+            });
+
+             // Listen to property and method changes
+            coffeeDesigner.on([
+                'change:name', 
+                'change:property'
+            ], 
+                () => {
+                const json = JSON.stringify(coffeeDesigner.toJson());
+                ipcRenderer.send('change', json);
+            });
+
+            // Listen to position
+            coffeeDesigner.on('change:position', () => {
+                const json = JSON.stringify(coffeeDesigner.toJson());
+                ipcRenderer.send('change:position', json);
+            });
+
             if(json) {
                 coffeeDesigner.fromJson(JSON.parse(json));
             }
+
         });
 
-        // Listen to property and method changes
-        coffeeDesigner.on([
-            'change:name', 
-            'change:property'
-        ], 
-            () => {
-            const json = JSON.stringify(coffeeDesigner.toJson());
-            ipcRenderer.send('change', json);
-        });
-
-        // Listen to position
-        coffeeDesigner.on('change:position', () => {
-            const json = JSON.stringify(coffeeDesigner.toJson());
-            ipcRenderer.send('change:position', json);
-        });
-
-        // Notify cli when page has been loaded; 
         setTimeout(() => {
             ipcRenderer.send('page:load', 'loaded');
-        }, 300);
+        }, 350)
 
     </script>
 

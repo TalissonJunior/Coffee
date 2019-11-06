@@ -70,7 +70,8 @@ module.exports = (toolbox: GluegunToolbox) => {
        target: filesystem.path(designerTempServerPath, 'start.js'),
        props: {
          projectDirName: designerHistoryFolderName,
-         currentDir: filesystem.cwd().replace(/\\/g, '/')
+         currentDir: filesystem.cwd().replace(/\\/g, '/'),
+         projectName: JSON.parse(projectConfig).architecture.name
        }
     });
 

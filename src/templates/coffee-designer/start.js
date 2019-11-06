@@ -7,6 +7,7 @@ let mainWindow
 let version = '1.0.0'
 let newVersion
 const projectDirName = '<%= props.projectDirName %>'
+const projectName = '<%= props.projectName %>'
 const currentDir = '<%= props.currentDir %>'
 
 app.on('ready', () => {
@@ -14,6 +15,7 @@ app.on('ready', () => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    frame: false,
     icon: path.resolve(__dirname, 'icon.png'),
     webPreferences: {
       nodeIntegration: true
@@ -28,6 +30,11 @@ app.on('ready', () => {
   /// Open index.html
   mainWindow.loadFile(path.resolve(__dirname, 'index.html'))
 })
+
+// Catch when close button has beign trigger
+ipcMain.on('app:quit', () => {
+  app.quit();
+});
 
 // Catch page load, and send the last diagram json
 ipcMain.on('page:load', () => {
@@ -71,7 +78,7 @@ ipcMain.on('page:load', () => {
     }
   }
 
-  mainWindow.webContents.send('page:load', latestJson)
+  mainWindow.webContents.send('page:load', latestJson, projectName)
 })
 
 // Update version if has change properties and version
