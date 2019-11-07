@@ -112,7 +112,6 @@ module.exports = (toolbox: GluegunToolbox) => {
         target: filesystem.path(mappingsFolderPath, 'MappingProfile.cs'),
         props: {
             classTables: classTables,
-            middleTables: classTables.filter((ct) => ct.isMiddleTable),
             projectName: JSON.parse(projectConfig).architecture.name
         }
     });

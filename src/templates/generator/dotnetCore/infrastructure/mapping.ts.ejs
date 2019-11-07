@@ -28,17 +28,83 @@ namespace <%= props.projectName %>.Infrastructure.Mappings
                     CreateMap<Entities.<%= classTable.name %>, <%= classTable.name %>>()
                         .AfterMap((src, dest) =>
                         {
-                            if (src.CategoriesProducts != null)
-                            {
-                                foreach (var categoryProduct in src.CategoriesProducts)
-                                {
-                                    dest.AddCategory(new Category(
-                                        categoryProduct.Category.Name,
-                                        categoryProduct.Category.ForeColor,
-                                        categoryProduct.Category.BackColor,
-                                        categoryProduct.Category.Id));
-                                }
-                            }
+
+                            <% if(classTable.hasRelations) { %>
+                                
+                                <% classTable.tableRelations.forEach(function(tableRelation) { %>
+                                    
+                                    if (src.<%= tableRelation.name %>s != null)
+                                    {
+                                        foreach (var <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %> in src.<%= tableRelation.name %>s)
+                                        {
+                                            <% if (tableRelation.firstMiddleTablePropety.foreign.table != classTable.name) { %> 
+
+                                                dest.Add<%= tableRelation.firstMiddleTablePropety.foreign.table %>(
+                                                    new <%= tableRelation.firstMiddleTablePropety.foreign.table %>(
+                                                    
+                                                    <% props.classTables.filter(ct => ct.name == tableRelation.firstMiddleTablePropety.foreign.table).forEach(function(ctable){ %>
+                                                    
+                                                        <% ctable.properties.forEach(function(property, index){ %>
+                                                            <% if (property.isRequired) { %>  
+                                                                <% if(property.isForeignKey) { %> 
+                                                                   <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.foreign.classProperty %> 
+                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
+                                                                <% } else { %>
+                                                                   <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.name %> 
+                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
+                                                                <% } %>
+                                                            <% } else { %>
+                                                                <% if(property.isForeignKey) { %> 
+                                                                    <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %>  :
+                                                                   <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.foreign.classProperty %> 
+                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
+                                                                <% } else { %>
+                                                                    <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> : <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.name %> 
+                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
+                                                                <% } %>
+                                                            <% } %>
+                                                        <% }); %>
+                                                    <% }); %>
+
+                                                ));
+
+                                            <% } else { %> 
+                                                   
+                                                dest.Add<%= tableRelation.secondMiddleTablePropety.foreign.table %>(
+                                                    new <%= tableRelation.secondMiddleTablePropety.foreign.table %>(
+                                                    
+                                                    <% props.classTables.filter(ct => ct.name == tableRelation.secondMiddleTablePropety.foreign.table).forEach(function(ctable){ %>
+
+                                                        <% ctable.properties.forEach(function(property, index){ %>
+                                                            <% if (property.isRequired) { %>  
+                                                                <% if(property.isForeignKey) { %> 
+                                                                    <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.foreign.classProperty %> 
+                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
+                                                                <% } else { %>
+                                                                    <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.name %> 
+                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
+                                                                <% } %>
+                                                            <% } else { %>
+                                                                <% if(property.isForeignKey) { %> 
+                                                                    <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %>  :
+                                                                    <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.foreign.classProperty %> 
+                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
+                                                                <% } else { %>
+                                                                    <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> : <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.name %> 
+                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
+                                                                <% } %>
+                                                            <% } %>
+                                                        <% }); %>
+
+                                                    <% }); %>
+
+                                                ));
+                                                
+                                            <% } %>
+                                        }
+                                    }
+                                <% }); %>
+                            <% } %>
                         })
                         .ForAllMembers(opts =>
                             opts.Condition((src, dest, srcMember) => srcMember != null)
@@ -53,7 +119,7 @@ namespace <%= props.projectName %>.Infrastructure.Mappings
                                 <% if(property.isForeignKey) { %>
                                     if(src.<%= property.foreign.classProperty %> != null)
                                     {
-                                        dest.<%= property.name %> = src.<%= property.foreign.classProperty %>.Id;
+                                        dest.<%= property.name %> = src.<%= property.foreign.classProperty %>.<%= property.foreign.tableColumn %>;
                                     }
 
                                 <% } %>
@@ -75,8 +141,8 @@ namespace <%= props.projectName %>.Infrastructure.Mappings
                                                 var <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %> = new Entities.<%= tableRelation.name %>
                                                 {
                                                     Id = Guid.NewGuid(),
-                                                    <%= tableRelation.firstMiddleTablePropety.name  %> = <%= tableRelation.firstMiddleTablePropety.foreign.classProperty.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.classProperty.slice(1) %>.Id,
-                                                    <%= tableRelation.secondMiddleTablePropety.name  %> = src.Id
+                                                    <%= tableRelation.firstMiddleTablePropety.name  %> = <%= tableRelation.firstMiddleTablePropety.foreign.classProperty.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.classProperty.slice(1) %>.<%= tableRelation.firstMiddleTablePropety.foreign.tableColumn %>,
+                                                    <%= tableRelation.secondMiddleTablePropety.name  %> = src.<%= tableRelation.secondMiddleTablePropety.foreign.tableColumn %>
                                                 };
     
                                                 dest.<%= tableRelation.name %>s.Add(<%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>);
@@ -94,8 +160,8 @@ namespace <%= props.projectName %>.Infrastructure.Mappings
                                                 var <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %> = new Entities.<%= tableRelation.name %>
                                                 {
                                                     Id = Guid.NewGuid(),
-                                                    <%= tableRelation.secondMiddleTablePropety.name  %> = <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>.Id,
-                                                    <%= tableRelation.firstMiddleTablePropety.name  %> = src.Id
+                                                    <%= tableRelation.secondMiddleTablePropety.name  %> = <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>.<%= tableRelation.secondMiddleTablePropety.foreign.tableColumn %>,
+                                                    <%= tableRelation.firstMiddleTablePropety.name  %> = src.<%= tableRelation.firstMiddleTablePropety.foreign.tableColumn %>
                                                 };
     
                                                 dest.<%= tableRelation.name %>s.Add(<%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>);
