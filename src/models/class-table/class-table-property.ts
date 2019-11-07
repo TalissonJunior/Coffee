@@ -1,11 +1,10 @@
-import { ClassTablePropertyType } from "./class-table-property-type";
 import { ClassTableForeignKey } from "./class-table-foreign";
 
 export interface ClassTableProperty {
     name: string;
     columnName: string;
     description: string;
-    type: ClassTablePropertyType;
+    type: string;
     isForeignKey: boolean;
     isPrimaryKey: boolean;
     isRequired: boolean;

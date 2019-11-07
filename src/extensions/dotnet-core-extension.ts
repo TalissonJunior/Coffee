@@ -57,10 +57,11 @@ module.exports = (toolbox: GluegunToolbox) => {
         const classTable = classTables[index];
 
         await generate({
-            template: 'generator/dotnetCore/entity.ts.ejs',
+            template: 'generator/dotnetCore/infrastructure/entity.ts.ejs',
             target: filesystem.path(entitiesFolderPath, classTable.name + '.cs'),
             props: {
                 classTable: classTable,
+                middleTables: classTables.filter((ct) => ct.isMiddleTable),
                 projectName: JSON.parse(projectConfig).architecture.name
             }
         });
@@ -78,7 +79,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     );
 
     await generate({
-        template: 'generator/dotnetCore/context.ts.ejs',
+        template: 'generator/dotnetCore/infrastructure/context.ts.ejs',
         target: filesystem.path(entityFrameworkFolderPath, 'Context.cs'),
         props: {
             classTables: classTables,
@@ -87,9 +88,41 @@ module.exports = (toolbox: GluegunToolbox) => {
         }
     });
     
+    spinner.stop();
     print.info(`${print.checkmark} Created: ${filesystem.path(entityFrameworkFolderPath, 'Context.cs')}`);
+    spinner.start();
 
-      // Format entities files
+    // Format entities files
+    await toolbox.system.run(
+        'prettier --print-width 80 --no-semi --single-quote ' + 
+        ' --trailing-comma --write ' + 
+        JSON.parse(projectConfig).architecture.infrastructure + '/**/*.cs'
+    )
+
+    spinner.text = 'Generating Mappings...';
+
+    // Create Mappings
+    const mappingsFolderPath = filesystem.path(
+        infrastructure, 
+        'Mappings'
+    );
+
+    await generate({
+        template: 'generator/dotnetCore/infrastructure/mapping.ts.ejs',
+        target: filesystem.path(mappingsFolderPath, 'MappingProfile.cs'),
+        props: {
+            classTables: classTables,
+            middleTables: classTables.filter((ct) => ct.isMiddleTable),
+            projectName: JSON.parse(projectConfig).architecture.name
+        }
+    });
+    
+    spinner.stop();
+    print.newline();
+    print.info(`${print.checkmark} Created: ${filesystem.path(mappingsFolderPath, 'MappingProfile.cs')}`);
+    spinner.start();
+
+    // Format mappings files
     await toolbox.system.run(
         'prettier --print-width 80 --no-semi --single-quote ' + 
         ' --trailing-comma --write ' + 
@@ -149,7 +182,7 @@ module.exports = (toolbox: GluegunToolbox) => {
             await filesystem.dirAsync(folderPath);
 
             await generate({
-                template: 'generator/dotnetCore/domain.ts.ejs',
+                template: 'generator/dotnetCore/infrastructure/domain.ts.ejs',
                 target: filesystem.path(folderPath, classTable.name + '.cs'),
                 props: {
                     classTable: classTable,
@@ -158,7 +191,9 @@ module.exports = (toolbox: GluegunToolbox) => {
                 }
             });
 
+            spinner.stop();
             print.info(`${print.checkmark} Created: ${filesystem.path(folderPath, classTable.name + '.cs')}`);
+            spinner.start();
         }
         
     }

@@ -1,0 +1,117 @@
+using AutoMapper;
+using System.Collections.Generic;
+using System;
+using System.Linq;
+<% props.classTables.forEach(function(classTable){ %>
+    <% if(!classTable.isMiddleTable) { %>
+        using <%= props.projectName %>.Domain.<%= classTable.name %>;
+    <% } %>
+<% }); %>
+
+namespace <%= props.projectName %>.Infrastructure.Mappings
+{
+    public sealed class MappingProfile : Profile
+    {
+        public MappingProfile()
+        {
+            <% props.classTables.forEach(function(classTable){ %>
+                <% if(!classTable.isMiddleTable) { %>
+                    Create<%= classTable.name %>Map();
+                <% } %>
+            <% }); %>
+        }
+
+        <% props.classTables.forEach(function(classTable){ %>
+            <% if(!classTable.isMiddleTable) { %>
+                private void Create<%= classTable.name %>Map()
+                {
+                    CreateMap<Entities.<%= classTable.name %>, <%= classTable.name %>>()
+                        .AfterMap((src, dest) =>
+                        {
+                            if (src.CategoriesProducts != null)
+                            {
+                                foreach (var categoryProduct in src.CategoriesProducts)
+                                {
+                                    dest.AddCategory(new Category(
+                                        categoryProduct.Category.Name,
+                                        categoryProduct.Category.ForeColor,
+                                        categoryProduct.Category.BackColor,
+                                        categoryProduct.Category.Id));
+                                }
+                            }
+                        })
+                        .ForAllMembers(opts =>
+                            opts.Condition((src, dest, srcMember) => srcMember != null)
+                        );
+
+                    CreateMap<<%= classTable.name %>, Entities.<%= classTable.name %>>()
+                        .AfterMap((src, dest) =>
+                        {
+
+                            <% classTable.properties.forEach(function(property){ %>
+
+                                <% if(property.isForeignKey) { %>
+                                    if(src.<%= property.foreign.classProperty %> != null)
+                                    {
+                                        dest.<%= property.name %> = src.<%= property.foreign.classProperty %>.Id;
+                                    }
+
+                                <% } %>
+                            <% }); %>
+                                    
+                            
+                            <% if(classTable.hasRelations) { %>
+                                
+                                <% classTable.tableRelations.forEach(function(tableRelation){ %>
+                                    <% if (tableRelation.firstMiddleTablePropety.foreign.table != classTable.name) { %> 
+                                  
+                                        if(src.<%= tableRelation.firstMiddleTablePropety.foreign.classProperty %>s != null)
+                                        {
+                                            dest.<%= tableRelation.name %>s = new List<Entities.<%= tableRelation.name %>>();
+    
+                                            foreach (var <%= tableRelation.firstMiddleTablePropety.foreign.classProperty.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.classProperty.slice(1) %> in src.<%= tableRelation.firstMiddleTablePropety.foreign.classProperty %>s)
+                                            {
+    
+                                                var <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %> = new Entities.<%= tableRelation.name %>
+                                                {
+                                                    Id = Guid.NewGuid(),
+                                                    <%= tableRelation.firstMiddleTablePropety.name  %> = <%= tableRelation.firstMiddleTablePropety.foreign.classProperty.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.classProperty.slice(1) %>.Id,
+                                                    <%= tableRelation.secondMiddleTablePropety.name  %> = src.Id
+                                                };
+    
+                                                dest.<%= tableRelation.name %>s.Add(<%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>);
+                                            };
+                                        }
+                                        
+                                    <% } else { %> 
+                                        if(src.<%= tableRelation.secondMiddleTablePropety.foreign.table %> != null)
+                                        {
+                                            dest.<%= tableRelation.name %>s = new List<Entities.<%= tableRelation.name %>>();
+    
+                                            foreach (var <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %> in src.<%= tableRelation.secondMiddleTablePropety.foreign.table %>s)
+                                            {
+    
+                                                var <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %> = new Entities.<%= tableRelation.name %>
+                                                {
+                                                    Id = Guid.NewGuid(),
+                                                    <%= tableRelation.secondMiddleTablePropety.name  %> = <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>.Id,
+                                                    <%= tableRelation.firstMiddleTablePropety.name  %> = src.Id
+                                                };
+    
+                                                dest.<%= tableRelation.name %>s.Add(<%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>);
+                                            };
+                                        }
+                                    <% } %>
+
+                                  
+                                <% }); %>
+                            <% } %>
+                        })
+                        .ForAllMembers(opts =>
+                            opts.Condition((src, dest, srcMember) => srcMember != null)
+                        );
+                }
+            <% } %>
+        <% }); %>
+    }
+}
