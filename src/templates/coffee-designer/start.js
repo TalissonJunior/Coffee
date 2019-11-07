@@ -16,7 +16,7 @@ app.on('ready', () => {
     width: 800,
     height: 600,
     frame: false,
-    icon: path.resolve(__dirname, 'icon.png'),
+    icon: path.resolve(__dirname, 'assets/logo.png'),
     webPreferences: {
       nodeIntegration: true
     }
