@@ -61,7 +61,6 @@ module.exports = (toolbox: GluegunToolbox) => {
             target: filesystem.path(entitiesFolderPath, classTable.name + '.cs'),
             props: {
                 classTable: classTable,
-                middleTables: classTables.filter((ct) => ct.isMiddleTable),
                 projectName: JSON.parse(projectConfig).architecture.name
             }
         });

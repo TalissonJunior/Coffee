@@ -28,10 +28,12 @@ namespace <%= props.projectName %>.Infrastructure.Entities
             public <%= property.type %> <%= property.name %> { get; set; }
         
         <% } %>
-    <% }); %>
 
-    <% props.middleTables.forEach(function(middleTable){ %>
-        public IList<<%= middleTable.name %>> <%= middleTable.name %>s { get; set; }
+        <% if(props.classTable.hasRelations) { %>
+            <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
+                public IList<<%= tableRelation.name %>> <%= tableRelation.name %>s { get; set; }
+            <% }); %>
+        <% } %>
     <% }); %>
 
     }

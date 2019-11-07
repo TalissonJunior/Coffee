@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 <% props.classTables.forEach(function(classTable){ %>
-    <% if(!classTable.isMiddleTable) { %>
-        using <%= props.projectName %>.Domain.<%= classTable.name %>;
-    <% } %>
+    using <%= props.projectName %>.Domain.<%= classTable.name %>;
 <% }); %>
 
 namespace <%= props.projectName %>.Infrastructure.Mappings
