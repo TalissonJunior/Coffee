@@ -8,6 +8,7 @@ module.exports = (toolbox: GluegunToolbox) => {
         template: { 
             generate 
         }, 
+        prompt
     } = toolbox
 
     toolbox.dotnetcore =  {
@@ -38,17 +39,14 @@ module.exports = (toolbox: GluegunToolbox) => {
     const webapiFolderPath = 
         JSON.parse(projectConfig).architecture.webapi;
 
-    const autofac = await filesystem.readAsync(
-        filesystem.path(filesystem.cwd(), webapiFolderPath, 'autofac.json')
-    )
-
+    const autofac = require(
+        filesystem.path(filesystem.cwd(), webapiFolderPath, 'autofac.json'));
+    
     if(!autofac) {
         spinner.stop();
         print.info(`Coudn´t find the ${filesystem.path(webapiFolderPath, 'autofac.json')} file`);
         return;
     }
-
-    print.debug(JSON.parse(autofac).modules)
     
     for (let index = 0; index < autofac.modules.length; index++) {
         const mod = autofac.modules[index];
@@ -58,7 +56,80 @@ module.exports = (toolbox: GluegunToolbox) => {
         }
 
         if(!isEmptyObject(mod.properties) && !mod.properties.ConnectionString) {
-            console.log("oi")
+            spinner.stop();
+            print.info('Coudn´t find a database connection, you must set up one..');
+            let hasValidConnection = false;
+
+            do {
+                
+                let connection = await prompt.ask([
+                {
+                  type: 'input',
+                  name: 'hostname',
+                  message: 'What is the Hostname?',
+                },
+                {
+                    type: 'input',
+                    name: 'username',
+                    message: 'What is the Username?',
+                },
+                {
+                    type: 'input',
+                    name: 'schema',
+                    message: 'What is the default Schema?',
+                },
+                {
+                    type: 'password',
+                    name: 'password',
+                    message: 'What is the database password?',
+                }
+              ]);
+
+                // Default port 
+                (connection as any).port = 3306;
+
+                spinner.start();
+                spinner.text = "Validating connection...";
+
+                const resultConnection = 
+                    await toolbox.database.validateConnection(connection);
+
+                if(!resultConnection.isValid) {
+                    spinner.stop();
+                    print.info(`${print.xmark} ${resultConnection.message}`);
+                }
+
+                hasValidConnection = resultConnection.isValid;
+
+                if(hasValidConnection) {
+                    spinner.start();
+                    spinner.text = "Updating autofac.json...";
+
+                    const connectionString = 
+                        `server=${connection.hostname};` + 
+                        `port=3306;database=${connection.schema};` + 
+                        `user=${connection.username};` + 
+                        `password=${connection.password};`;
+
+                    autofac.modules[index].properties.ConnectionString = connectionString;
+
+                    await filesystem.writeAsync(
+                        filesystem.path(filesystem.cwd(), webapiFolderPath, 'autofac.json'),
+                        JSON.stringify(autofac)
+                    )
+
+                    spinner.text = "Formatting autofac.json...";
+
+                    // Format autofac.json file
+                    await toolbox.system.run(
+                        'prettier --no-semi --trailing-comma --write ' + 
+                        JSON.parse(projectConfig).architecture.webapi + '/autofac.json'
+                    )
+
+                    spinner.stop();
+                }
+
+            } while (!hasValidConnection);
         }
     }
 
