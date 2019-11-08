@@ -12,8 +12,58 @@ module.exports = (toolbox: GluegunToolbox) => {
 
     toolbox.dotnetcore =  {
         updateEntitiesAndContext: updateEntitiesAndContext,
-        updateDomains: updateDomains
+        updateDomains: updateDomains,
+        checkConnectionString: checkConnectionString
     };
+
+    
+  async function checkConnectionString() {
+    const spinner = print.spin();
+    spinner.start();
+    print.newline();
+
+    spinner.text = 'Checking connection string...';
+
+    const projectConfig = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), config.project.configFileName)
+    )
+  
+    if(!projectConfig){
+        spinner.stop();
+        print.info(`Coudn´t find the ${config.project.configFileName} file`);
+        return;
+    }
+
+    // Get webapi folder
+    const webapiFolderPath = 
+        JSON.parse(projectConfig).architecture.webapi;
+
+    const autofac = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), webapiFolderPath, 'autofac.json')
+    )
+
+    if(!autofac) {
+        spinner.stop();
+        print.info(`Coudn´t find the ${filesystem.path(webapiFolderPath, 'autofac.json')} file`);
+        return;
+    }
+
+    print.debug(JSON.parse(autofac).modules)
+    
+    for (let index = 0; index < autofac.modules.length; index++) {
+        const mod = autofac.modules[index];
+        
+        const isEmptyObject = (obj) => {
+            return Object.entries(obj).length === 0 && obj.constructor === Object;
+        }
+
+        if(!isEmptyObject(mod.properties) && !mod.properties.ConnectionString) {
+            console.log("oi")
+        }
+    }
+
+    spinner.stop();
+  }
 
   /**
    * Update dotnet core entities, and context
@@ -184,7 +234,6 @@ module.exports = (toolbox: GluegunToolbox) => {
                 target: filesystem.path(folderPath, classTable.name + '.cs'),
                 props: {
                     classTable: classTable,
-                    middleTables: classTables.filter((ct) => ct.isMiddleTable),
                     projectName: JSON.parse(projectConfig).architecture.domain
                 }
             });

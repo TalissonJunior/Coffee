@@ -12,7 +12,7 @@
     {
       "type": "EmptyProject.Infrastructure.EntityFrameworkDataAccess.Module",
       "properties": {
-        "ConnectionString": "Server=(LocalDB)\\MSSQLLocalDB;Database=EmptyProjectDb;Integrated Security=true;"
+        "ConnectionString": ""
       }
     }
   ]
