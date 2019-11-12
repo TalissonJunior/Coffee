@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using EmptyProject.Infrastructure.EntityFrameworkDataAccess.Mappings;
+using EmptyProject.Infrastructure.Mappings;
 
 namespace EmptyProject.Infrastructure.EntityFrameworkDataAccess.Repositories
 {

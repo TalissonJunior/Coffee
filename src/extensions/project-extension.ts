@@ -38,21 +38,33 @@ module.exports = (toolbox: GluegunToolbox) => {
   }
 
   async function isInsideDotnetCore() {
+    const spinner = print.spin();
+    spinner.start();
+    
     let configFile = await filesystem.readAsync(
       filesystem.path(config.project.configFileName)
     )
 
-    if (!configFile) {
-      return false
+    if(configFile) {
+      configFile = JSON.parse(configFile) as CliProjectConfig
     }
 
-    configFile = JSON.parse(configFile) as CliProjectConfig
-
-    if (configFile.architecture.type === 'DotnetCore') {
+    if (configFile && configFile.architecture.type === 'DotnetCore') {
+      spinner.stop();
       return configFile
     }
 
-    return false
+    spinner.stop();
+    print.error("You are not inside of a '.Net Core' project")
+    print.info(
+      'If you are inside a dotnet core project make' +
+      ` sure you have a '${config.project.configFileName}' in the root directory.`
+    )
+
+    print.info('To create a new .Net Core project run:')
+    print.success(' coffee new yourProjectName --dotnetcore');
+
+    return false;
   }
 
   async function checkDependencies(projectType: ProjectType) {
@@ -182,13 +194,30 @@ module.exports = (toolbox: GluegunToolbox) => {
         spinner.text = `Updating .Net Core from @${installedDotnetCoreCLIVersion} to @${config.dotnetCoreCLIVersion}.`
         await _installUpdateDotNetCore()
       }
+      
+      spinner.stop()
+    } catch (e) {
+      // Dotnet Core not installed
+      spinner.text = `Installing .NET Core @${config.dotnetCoreCLIVersion}`
+      await _installUpdateDotNetCore()
+      spinner.stop()
+    }
+    
+    // Check dotnet core ef
+    try {
+      await toolbox.system.run(
+        'dotnet-ef --version',
+        {
+          trim: true
+        }
+      )
 
       spinner.stop()
       return true
     } catch (e) {
       // Dotnet Core not installed
-      spinner.text = `Installing .NET Core @${config.dotnetCoreCLIVersion}`
-      await _installUpdateDotNetCore()
+      spinner.text = `Installing .NET Core ef 3.0.0`
+      await _installDotnetCoreEfCli()
       spinner.stop()
       return false
     }
@@ -197,6 +226,16 @@ module.exports = (toolbox: GluegunToolbox) => {
   async function _installUpdateAngularCli() {
     await toolbox.system.run(
       `npm install -g @angular/cli@${config.angularCLIVersion}`,
+      {
+        trim: true
+      }
+    )
+  }
+
+  
+  async function _installDotnetCoreEfCli() {
+    await toolbox.system.run(
+      `dotnet tool install --global dotnet-ef --version 3.0.0`,
       {
         trim: true
       }
@@ -267,6 +306,13 @@ module.exports = (toolbox: GluegunToolbox) => {
           }
         )
 
+        await toolbox.system.run(
+          `dotnet tool install --global dotnet-ef --version 3.0.0`,
+          {
+            trim: true
+          }
+        )
+
         return true;
       }
       // Windows 32
@@ -300,6 +346,13 @@ module.exports = (toolbox: GluegunToolbox) => {
           }
         )
 
+        await toolbox.system.run(
+          `dotnet tool install --global dotnet-ef --version 3.0.0`,
+          {
+            trim: true
+          }
+        )
+
         return true;
       }
       // Mac os
@@ -327,6 +380,13 @@ module.exports = (toolbox: GluegunToolbox) => {
 
         await toolbox.system.run(
           `sudo installer -pkg ${pathToSave}`,
+          {
+            trim: true
+          }
+        )
+
+        await toolbox.system.run(
+          `dotnet tool install --global dotnet-ef --version 3.0.0`,
           {
             trim: true
           }

@@ -1,5 +1,4 @@
 import { GluegunToolbox } from 'gluegun'
-import { CliProjectConfig } from '../models/cli-project-config'
 import { ProjectType } from '../enums/projectType'
 
 module.exports = {
@@ -8,24 +7,15 @@ module.exports = {
     const {
       print,
       project,
-      config,
       designer,
       prompt,
       dotnetcore
     } = toolbox
 
-    const projectConfigFile = (await project.isInsideDotnetCore()) as CliProjectConfig
-
-    if (!projectConfigFile) {
-      print.error("You are not inside of a '.Net Core' project")
-      print.info(
-        'If you are inside a dotnet core project make' +
-          ` sure you have a '${config.project.configFileName}' in the root directory.`
-      )
-
-      print.info('To create a new .Net Core project run:')
-      print.success(' coffee new yourProjectName --dotnetcore')
-      return
+    const isInsideDotnetCore = await project.isInsideDotnetCore();
+    
+    if(!isInsideDotnetCore) { 
+      return;
     }
     
     const allInstalled = await project.checkDependencies(ProjectType.dotnetCore)

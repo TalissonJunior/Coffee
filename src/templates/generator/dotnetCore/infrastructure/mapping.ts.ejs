@@ -1,9 +1,10 @@
 using AutoMapper;
 using System.Collections.Generic;
 using System;
-using System.Linq;
 <% props.classTables.forEach(function(classTable){ %>
-    using <%= props.projectName %>.Domain.<%= classTable.name %>;
+    <% if(!classTable.isMiddleTable) { %>
+        using <%= props.projectName %>.Domain.<%= classTable.name %>;
+    <% } %>
 <% }); %>
 
 namespace <%= props.projectName %>.Infrastructure.Mappings
@@ -24,86 +25,6 @@ namespace <%= props.projectName %>.Infrastructure.Mappings
                 private void Create<%= classTable.name %>Map()
                 {
                     CreateMap<Entities.<%= classTable.name %>, <%= classTable.name %>>()
-                        .AfterMap((src, dest) =>
-                        {
-
-                            <% if(classTable.hasRelations) { %>
-                                
-                                <% classTable.tableRelations.forEach(function(tableRelation) { %>
-                                    
-                                    if (src.<%= tableRelation.name %>s != null)
-                                    {
-                                        foreach (var <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %> in src.<%= tableRelation.name %>s)
-                                        {
-                                            <% if (tableRelation.firstMiddleTablePropety.foreign.table != classTable.name) { %> 
-
-                                                dest.Add<%= tableRelation.firstMiddleTablePropety.foreign.table %>(
-                                                    new <%= tableRelation.firstMiddleTablePropety.foreign.table %>(
-                                                    
-                                                    <% props.classTables.filter(ct => ct.name == tableRelation.firstMiddleTablePropety.foreign.table).forEach(function(ctable){ %>
-                                                    
-                                                        <% ctable.properties.forEach(function(property, index){ %>
-                                                            <% if (property.isRequired) { %>  
-                                                                <% if(property.isForeignKey) { %> 
-                                                                   <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.foreign.classProperty %> 
-                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
-                                                                <% } else { %>
-                                                                   <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.name %> 
-                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
-                                                                <% } %>
-                                                            <% } else { %>
-                                                                <% if(property.isForeignKey) { %> 
-                                                                    <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %>  :
-                                                                   <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.foreign.classProperty %> 
-                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
-                                                                <% } else { %>
-                                                                    <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> : <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.name %> 
-                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
-                                                                <% } %>
-                                                            <% } %>
-                                                        <% }); %>
-                                                    <% }); %>
-
-                                                ));
-
-                                            <% } else { %> 
-                                                   
-                                                dest.Add<%= tableRelation.secondMiddleTablePropety.foreign.table %>(
-                                                    new <%= tableRelation.secondMiddleTablePropety.foreign.table %>(
-                                                    
-                                                    <% props.classTables.filter(ct => ct.name == tableRelation.secondMiddleTablePropety.foreign.table).forEach(function(ctable){ %>
-
-                                                        <% ctable.properties.forEach(function(property, index){ %>
-                                                            <% if (property.isRequired) { %>  
-                                                                <% if(property.isForeignKey) { %> 
-                                                                    <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.foreign.classProperty %> 
-                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
-                                                                <% } else { %>
-                                                                    <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.name %> 
-                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
-                                                                <% } %>
-                                                            <% } else { %>
-                                                                <% if(property.isForeignKey) { %> 
-                                                                    <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %>  :
-                                                                    <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.foreign.classProperty %> 
-                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
-                                                                <% } else { %>
-                                                                    <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> : <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= ctable.name %>.<%= property.name %> 
-                                                                    <% if(index < ctable.properties.length - 1) { %>, <% } %>
-                                                                <% } %>
-                                                            <% } %>
-                                                        <% }); %>
-
-                                                    <% }); %>
-
-                                                ));
-                                                
-                                            <% } %>
-                                        }
-                                    }
-                                <% }); %>
-                            <% } %>
-                        })
                         .ForAllMembers(opts =>
                             opts.Condition((src, dest, srcMember) => srcMember != null)
                         );
@@ -148,7 +69,7 @@ namespace <%= props.projectName %>.Infrastructure.Mappings
                                         }
                                         
                                     <% } else { %> 
-                                        if(src.<%= tableRelation.secondMiddleTablePropety.foreign.table %> != null)
+                                        if(src.<%= tableRelation.secondMiddleTablePropety.foreign.table %>s != null)
                                         {
                                             dest.<%= tableRelation.name %>s = new List<Entities.<%= tableRelation.name %>>();
     

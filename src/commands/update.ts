@@ -16,6 +16,8 @@ module.exports = {
 
     await dotnetcore.updateEntitiesAndContext();
     await dotnetcore.updateDomains();
+    await dotnetcore.checkConnectionString();
+    await dotnetcore.updateMigrations();
 
     spinner.stop();
     print.newline();

@@ -19,9 +19,10 @@ module.exports = (toolbox: GluegunToolbox) => {
     } = toolbox
 
     toolbox.designer= { 
-        start: start,
-        hasChangeClassTables: hasChangeClassTables,
-        getClassTables: getClassTables
+        start,
+        hasChangeClassTables,
+        getClassTables,
+        getLatestDesignerFileVersion
     } 
 
   async function start() {
@@ -87,7 +88,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     
     spinner.text = 'Syncing Coffee Designer Server files...';
 
-    const ltVersion = await _getLatestDesignerFileVersion();
+    const ltVersion = await getLatestDesignerFileVersion();
 
     if(ltVersion) {
         await toolbox.localStorage.setValue('lastCoffeeVersion', ltVersion);
@@ -144,7 +145,7 @@ module.exports = (toolbox: GluegunToolbox) => {
   async function hasChangeClassTables(): Promise<boolean> {
 
     const latestVersion = await toolbox.localStorage.getValue('lastCoffeeVersion');
-    const currentVersion = await _getLatestDesignerFileVersion();
+    const currentVersion = await getLatestDesignerFileVersion();
 
     if(semver.valid(currentVersion) && semver.valid(latestVersion) && 
         semver.gt(currentVersion, latestVersion)) {
@@ -158,7 +159,7 @@ module.exports = (toolbox: GluegunToolbox) => {
    * Returns an array with the latest class tables from version folder
    */
   async function getClassTables(): Promise<Array<ClassTable>> {
-    const currentVersion = await _getLatestDesignerFileVersion();
+    const currentVersion = await getLatestDesignerFileVersion();
 
     const projectConfig = await filesystem.readAsync(
         filesystem.path(filesystem.cwd(), config.project.configFileName)
@@ -221,7 +222,12 @@ module.exports = (toolbox: GluegunToolbox) => {
                             middleTable.secondMiddleTablePropety = foreignProperty;
                         }
                         
-                        currentClassTables[index].tableRelations.push(middleTable);
+
+                        const alreadyHasRelation = currentClassTables[index].tableRelations.find((tr => tr.name === middleTable.name));
+
+                        if(!alreadyHasRelation) {
+                            currentClassTables[index].tableRelations.push(middleTable);
+                        }
                    }
                 }
             }
@@ -324,7 +330,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     }
   }
 
-  async function _getLatestDesignerFileVersion() {
+  async function getLatestDesignerFileVersion() {
     const projectConfig = await filesystem.readAsync(
         filesystem.path(filesystem.cwd(), config.project.configFileName)
     )

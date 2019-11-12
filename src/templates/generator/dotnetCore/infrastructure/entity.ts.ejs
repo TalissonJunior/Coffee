@@ -1,7 +1,10 @@
 using System;
+<% if(props.classTable.hasRelations && !props.classTable.isMiddleTable) { %>
 using System.Collections.Generic;
+<% } %>
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using <%= props.projectName %>.Infrastructure.EntityFrameworkDataAccess.Entities;
 
 namespace <%= props.projectName %>.Infrastructure.Entities
 {
@@ -28,13 +31,13 @@ namespace <%= props.projectName %>.Infrastructure.Entities
             public <%= property.type %> <%= property.name %> { get; set; }
         
         <% } %>
-
-        <% if(props.classTable.hasRelations) { %>
-            <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
-                public IList<<%= tableRelation.name %>> <%= tableRelation.name %>s { get; set; }
-            <% }); %>
-        <% } %>
     <% }); %>
+
+    <% if(props.classTable.hasRelations && !props.classTable.isMiddleTable) { %>
+        <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
+            public IList<<%= tableRelation.name %>> <%= tableRelation.name %>s { get; set; }
+        <% }); %>
+    <% } %>
 
     }
 }

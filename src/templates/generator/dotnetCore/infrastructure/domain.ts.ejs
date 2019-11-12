@@ -1,5 +1,7 @@
 using System;
-using System.Text.RegularExpressions;
+<% if(props.classTable.hasRelations) { %>
+using System.Collections.Generic;
+<% } %>
 
 namespace <%= props.projectName %>.<%= props.classTable.name %>
 {
@@ -19,15 +21,15 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
             <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
                    
                 <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
-                    private List<<%= tableRelation.firstMiddleTablePropety.foreign.table %>> <%= tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>s;
-                    public IReadOnlyCollection<<%= tableRelation.firstMiddleTablePropety.foreign.table %>> <%= tableRelation.firstMiddleTablePropety.foreign.table %>s
+                    private List<<%= tableRelation.firstMiddleTablePropety.foreign.table %>.<%= tableRelation.firstMiddleTablePropety.foreign.table %>> <%= tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>s;
+                    public IReadOnlyCollection<<%= tableRelation.firstMiddleTablePropety.foreign.table %>.<%= tableRelation.firstMiddleTablePropety.foreign.table %>> <%= tableRelation.firstMiddleTablePropety.foreign.table %>s
                     {
                         get { return <%= tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>s; }
                     }
                     
                 <% } else { %> 
-                    private List<<%= tableRelation.secondMiddleTablePropety.foreign.table %>> <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>s;
-                    public IReadOnlyCollection<<%= tableRelation.secondMiddleTablePropety.foreign.table %>> <%= tableRelation.secondMiddleTablePropety.foreign.table %>s
+                    private List<<%= tableRelation.secondMiddleTablePropety.foreign.table %>.<%= tableRelation.secondMiddleTablePropety.foreign.table %>> <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>s;
+                    public IReadOnlyCollection<<%= tableRelation.secondMiddleTablePropety.foreign.table %>.<%= tableRelation.secondMiddleTablePropety.foreign.table %>> <%= tableRelation.secondMiddleTablePropety.foreign.table %>s
                     {
                         get { return <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>s; }
                     }
@@ -43,6 +45,9 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
                     <%= property.foreign.table %>.<%= property.foreign.table %> 
                     <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %> 
                     <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
+                <% } else if (property.isPrimaryKey && property.type == 'Guid') { %>
+                    <%= property.type %><% if(property.type == 'DateTime' || property.type == 'Guid') { %>? <% } %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> 
+                    <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
                 <% } else { %>
                     <%= property.type %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> 
                     <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
@@ -53,7 +58,7 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
                     <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %> = null
                     <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
                 <% } else { %>
-                    <%= property.type %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> = null
+                    <%= property.type %><% if(property.type == 'DateTime' || property.type == 'Guid') { %>? <% } %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> = null
                     <% if(index < props.classTable.properties.length - 1) { %>, <% } %>
                 <% } %>
             <% } %>
@@ -63,10 +68,10 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
             <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
                     
                 <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
-                    , List<<%= tableRelation.firstMiddleTablePropety.foreign.table %>> <%= tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>s = null
+                    , List<<%= tableRelation.firstMiddleTablePropety.foreign.table %>.<%= tableRelation.firstMiddleTablePropety.foreign.table %>> <%= tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>s = null
                     
                 <% } else { %> 
-                    , List<<%= tableRelation.secondMiddleTablePropety.foreign.table %>> <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>s = null
+                    , List<<%= tableRelation.secondMiddleTablePropety.foreign.table %>.<%= tableRelation.secondMiddleTablePropety.foreign.table %>> <%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>s = null
                 <% } %>
 
             <% }); %>
@@ -79,6 +84,9 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
             <% } else {%>   
                 <% if(property.isForeignKey) { %> 
                     <%= property.foreign.classProperty %> =  <%= property.foreign.classProperty.toLowerCase() %>;
+                <% } else if(!property.isRequired && property.type == 'DateTime'){ %>
+                    <%= property.name %> = <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>.HasValue ? 
+                    <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>.Value : default(DateTime);
                 <% } else { %>
                     <%= property.name %> = <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>;
                 <% } %>
@@ -94,12 +102,12 @@ namespace <%= props.projectName %>.<%= props.classTable.name %>
                     this.<%= tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() +tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>s =  
                     <%=tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() +tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>s != null ?
                     <%=tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() +tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>s : 
-                    new List<<%=tableRelation.firstMiddleTablePropety.foreign.table %>>();
+                    new List<<%=tableRelation.firstMiddleTablePropety.foreign.table %>.<%=tableRelation.firstMiddleTablePropety.foreign.table %>>();
                 <% } else { %> 
                     this. <%=tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() +tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>s =  
                     <%=tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() +tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>s != null ?
                     <%=tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() +tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>s : 
-                    new List<<%=tableRelation.secondMiddleTablePropety.foreign.table %>>();
+                    new List<<%=tableRelation.secondMiddleTablePropety.foreign.table %>.<%=tableRelation.secondMiddleTablePropety.foreign.table %>>();
                 <% } %>
 
             <% }); %>

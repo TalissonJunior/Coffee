@@ -1,4 +1,4 @@
-export interface ConnectionString {
+export class ConnectionString {
     hostname: string;
     username: string;
     schema: string;
