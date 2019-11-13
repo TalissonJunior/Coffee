@@ -18,7 +18,7 @@ namespace EmptyProject.Infrastructure.EntityFrameworkDataAccess
               .InstancePerLifetimeScope();
 
             //
-            // Register all Types in MongoDataAccess namespace
+            // Register all Types in EntityDataAccess namespace
             //
             builder.RegisterAssemblyTypes(typeof(InfrastructureException).Assembly)
                 .Where(type => type.Namespace.Contains("EntityFrameworkDataAccess"))

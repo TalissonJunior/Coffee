@@ -1,0 +1,18 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using <%= props.projectName %>.Domain.<%= props.classTable.name %>;
+
+namespace <%= props.projectName %>.Application.Repositories
+{
+    public interface IReadOnly<%= props.repositoryName %>Repository
+    {
+        Task<IQueryable<<%= props.classTable.name %>>> GetAll();
+
+        <% props.classTable.properties.forEach(function(property, index){ %>
+            <% if (property.isPrimaryKey) { %> 
+                Task<<%= props.classTable.name %>> GetAsync(<%= property.type %>  <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>);
+            <% } %>
+        <% }); %>
+    }
+}

@@ -1,0 +1,11 @@
+using <%= props.projectName %>.Domain.<%= props.classTable.name %>;
+using System.Threading.Tasks;
+
+namespace <%= props.projectName %>.Application.Repositories
+{
+    public interface IWriteOnly<%= props.repositoryName %>Repository
+    {
+        Task<<%= props.classTable.name %>> AddAsync(<%= props.classTable.name %> <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>);
+        Task<<%= props.classTable.name %>> UpdateAsync(<%= props.classTable.name %> <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>);
+    }
+}

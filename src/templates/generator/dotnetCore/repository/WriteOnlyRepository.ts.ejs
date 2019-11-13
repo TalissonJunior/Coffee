@@ -1,0 +1,48 @@
+
+using <%= props.projectName %>.Application.Repositories;
+using <%= props.projectName %>.Domain.<%= props.classTable.name %>;
+using System.Threading.Tasks;
+using System;
+
+namespace <%= props.projectName %>.Infrastructure.EntityFrameworkDataAccess.Repositories
+{
+    public sealed class <%= props.repositoryName %>Repository : BaseRepository, IWriteOnly<%= props.repositoryName %>Repository
+    {
+        private readonly Context context;
+
+        public <%= props.repositoryName %>Repository(Context context)
+        {
+            if(context == null) {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            this.context = context;
+        }
+
+        public async Task<<%= props.classTable.name %>> AddAsync(<%= props.classTable.name %> <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>)
+        {
+            var <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>DB = iMapper.Map<Entities.<%= props.classTable.name %>>(<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>);
+
+            var saved<%= props.classTable.name %> = await context.<%= props.classTable.name %>s.AddAsync(<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>DB);
+            await context.SaveChangesAsync();
+
+            return iMapper.Map<<%= props.classTable.name %>>(saved<%= props.classTable.name %>.Entity);
+        }
+
+        public async Task<<%= props.classTable.name %>> UpdateAsync(<%= props.classTable.name %> <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>)
+        {
+            var <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>DB = iMapper.Map<Entities.<%= props.classTable.name %>>(<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>);
+
+            <% props.classTable.properties.forEach(function(property, index){ %>
+                <% if (property.isForeignKey) { %> 
+                    <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>DB.<%= property.foreign.classProperty %> = null;
+                <% } %>
+            <% }); %>
+
+            var updated<%= props.classTable.name %> = context.<%= props.classTable.name %>s.Update(<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>DB);
+            await context.SaveChangesAsync();
+
+            return iMapper.Map<<%= props.classTable.name %>>(updated<%= props.classTable.name %>.Entity);
+        }
+    }
+}

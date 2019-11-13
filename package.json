@@ -31,7 +31,7 @@
   "dependencies": {
     "@types/mysql": "^2.15.8",
     "electron": "^6.0.0",
-    "gluegun": "^2.1.0",
+    "gluegun": "^4.1.0",
     "lodash": "^4.17.15",
     "mysql": "^2.17.1",
     "node-json-db": "^1.0.2",

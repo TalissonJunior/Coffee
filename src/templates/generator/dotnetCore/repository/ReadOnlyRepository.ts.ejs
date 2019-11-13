@@ -1,0 +1,152 @@
+using Dapper;
+using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using <%= props.projectName %>.Application.Repositories;
+using <%= props.projectName %>.Domain.<%= props.classTable.name %>;
+
+namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
+{
+    public sealed class <%= props.repositoryName %>Repository : BaseRepository,
+        IReadOnly<%= props.repositoryName %>Repository
+    {
+        private readonly string connectionString;
+
+        public <%= props.repositoryName %>Repository(string connectionString)
+        {
+            this.connectionString = connectionString;
+        }
+
+        public async Task<IQueryable<<%= props.classTable.name %>>> GetAll()
+        {
+            var result = await executeDefaultQuery(
+                <%= props.classTable.name %>Queries.GetAll, 
+                null
+                );
+            return result.AsQueryable();
+        }
+
+        
+        <% props.classTable.properties.forEach(function(property, index){ %>
+            <% if (property.isPrimaryKey) { %> 
+                public async Task<<%= props.classTable.name %>> GetAsync(<%= property.type %> <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %>)
+                {
+                    var result = await executeDefaultQuery(
+                        <%= props.classTable.name %>Queries.GetByKey, new { <%= property.name.charAt(0).toLowerCase() + property.name.slice(1) %> }
+                        );
+                    return result.FirstOrDefault();
+                }
+            <% } %>
+        <% }); %>
+
+        private async Task<List<<%= props.classTable.name %>>> executeDefaultQuery(
+            string sql,
+            object paramms
+        )
+        {
+            using (var conn = new MySqlConnection(connectionString))
+            {
+                conn.Open();
+
+                    <% if (props.classTable.hasRelations) { %> 
+                        <% props.classTable.properties.forEach(function(property, index){ %>
+                            <% if (property.isPrimaryKey) { %> 
+                                var dictionary = new Dictionary<<%= property.type %>, Entities.<%= props.classTable.name %>>();
+                            <% } %>
+                        <% }); %>
+                    <% } %>
+
+                    var result = await conn.QueryAsync(
+                    sql, new[]
+                    {
+                        typeof(Entities.<%= props.classTable.name %>) 
+
+                        <% props.classTable.properties.forEach(function(property, index){ %>
+                            <% if (property.isForeignKey) { %> 
+                                ,typeof(Entities.<%= property.foreign.table %>)
+                            <% } %>
+                        <% }); %>
+
+                        <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
+                                ,typeof(Entities.<%= tableRelation.name %>)
+                    
+                            <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+                                ,typeof(Entities.<%= tableRelation.firstMiddleTablePropety.foreign.table %>)
+                            <% } else { %> 
+                                ,typeof(Entities.<%= tableRelation.secondMiddleTablePropety.foreign.table %>)
+                            <% } %>
+            
+                        <% }); %>
+                    },
+                    (results) =>
+                    {
+
+                        <% if (props.classTable.hasRelations) { %> 
+                            Entities.<%= props.classTable.name %> response;
+                            var <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %> = results[0] as Entities.<%= props.classTable.name %>;
+
+                            if (!dictionary.TryGetValue(<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.Id, out response))
+                            {
+                                response = <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>;
+                                <% var propertyPosition = 1 %>
+
+                                <% props.classTable.properties.forEach(function(property, index){ %>
+                                    <% if (property.isForeignKey) { %> 
+                                        response.<%= property.foreign.classProperty %> = results[<%= propertyPosition %>] as Entities.<%= property.foreign.table %>;
+                                        <% propertyPosition++ %>
+                                    <% } %>
+                                <% }); %>
+
+                                <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
+                                    response.<%= tableRelation.name %>s = new List<Entities.<%= tableRelation.name %>>();     
+                                <% }); %>
+
+                                dictionary.Add(response.Id, response);
+                            }
+
+                            <% props.classTable.tableRelations.forEach(function(tableRelation, index) { %>
+                                <% var position = props.classTable.properties.filter(p => p.isForeignKey).length + (index + 1) %>
+                                if (results[<%= position %>]  != null)
+                                {
+                                    var <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %> = results[<%= position %>] as Entities.<%= tableRelation.name %>;
+
+
+                                    <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+                                        <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>. <%= tableRelation.firstMiddleTablePropety.foreign.table %> = results[<%= position + 1 %>] as Entities.<%= tableRelation.firstMiddleTablePropety.foreign.table %>;
+                                    <% } else { %> 
+                                        <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>. <%= tableRelation.secondMiddleTablePropety.foreign.table %> = results[<%= position + 1 %>] as Entities.<%= tableRelation.secondMiddleTablePropety.foreign.table %>;
+                                    <% } %>
+
+                                    <%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>.<%= props.classTable.name %> = <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>;
+
+                                    response.<%= tableRelation.name %>s.Add(<%= tableRelation.name.charAt(0).toLowerCase() + tableRelation.name.slice(1) %>);     
+                                }
+                            <% }); %>
+
+                            return response;
+                        
+                        <% } else { %>
+
+                            var response = new Entities.<%= props.classTable.name %>();
+
+                            response = results[0] as Entities.<%= props.classTable.name %>;
+                            <% props.classTable.properties.forEach(function(property, index){ %>
+                                <% if (property.isForeignKey) { %> 
+                                    response.<%= property.foreign.classProperty %> = results[<%= index + 1 %>] as Entities.<%= property.foreign.table %>;
+                                <% } %>
+                            <% }); %>
+
+                            return response;
+                            
+                        <% } %>
+                    }, paramms);
+
+                conn.Close();
+
+                return iMapper.Map<List<<%= props.classTable.name %>>>(result.Distinct());
+            }
+        }
+    }
+}

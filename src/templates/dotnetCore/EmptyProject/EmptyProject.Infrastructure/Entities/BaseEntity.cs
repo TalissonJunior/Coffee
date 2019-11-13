@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EmptyProject.Infrastructure.EntityFrameworkDataAccess.Entities
+namespace EmptyProject.Infrastructure.Entities
 {
     public class BaseEntity
     {

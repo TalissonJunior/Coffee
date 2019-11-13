@@ -7,7 +7,8 @@ module.exports = (toolbox: GluegunToolbox) => {
     const { } = toolbox
 
     toolbox.utils =  {
-      downloadFileToDisk: downloadFileToDisk
+      downloadFileToDisk,
+      capitalize
     };
 
    // Get file  from external url and save it to disk, from external url
@@ -29,4 +30,10 @@ module.exports = (toolbox: GluegunToolbox) => {
         });
     });
   }
+
+  function capitalize(s: string)
+  {
+    return s[0].toUpperCase() + s.slice(1);
+  }
+
 }
