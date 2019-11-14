@@ -1,0 +1,42 @@
+using System;
+using System.Threading.Tasks;
+using <%= props.projectName %>.Application.Repositories;
+using <%= props.projectName %>.Application.Outputs;
+<% if (props.methodType == 'GET' && props.isList) { %> 
+    using System.Linq;
+<% } %>
+
+namespace <%= props.projectName %>.Application.UseCases.<%= props.usecaseName %>UseCase
+{
+    public sealed class <%= props.usecaseName %>UseCase : I<%= props.usecaseName %>UseCase
+    {
+        <% props.repositories.forEach(function(repository){ %>
+            private readonly <%= repository %> <%= repository.charAt(1).toLowerCase() + repository.slice(2) %>;
+        <% }); %>
+
+        public <%= props.usecaseName %>UseCase(
+            <% props.repositories.forEach(function(repository, index){ %>
+                <%if(index > 0){%> , <%}%>
+                <%= repository %> <%= repository.charAt(1).toLowerCase() + repository.slice(2) %>
+            <% }); %>
+        )
+        {
+            <% props.repositories.forEach(function(repository){ %>
+                this.<%= repository.charAt(1).toLowerCase() + repository.slice(2) %> = <%= repository.charAt(1).toLowerCase() + repository.slice(2) %>;
+            <% }); %>
+        }
+
+        <% if (props.methodType == 'GET' && props.isList) { %> 
+            public async Task<IQueryable<<%= props.classTable.name %>Output>> Execute()
+            {
+                throw new NotImplementedException();
+            }
+        <% } else { %>
+            public async Task<<%= props.classTable.name %>Output> Execute()
+            {
+                throw new NotImplementedException();
+            }
+        <% } %>
+      
+    }
+}

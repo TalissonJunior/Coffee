@@ -1,0 +1,18 @@
+using System;
+using System.Threading.Tasks;
+using <%= props.projectName %>.Application.Outputs;
+<% if (props.methodType == 'GET' && props.isList) { %> 
+    using System.Linq;
+<% } %>
+
+namespace <%= props.projectName %>.Application.UseCases.<%= props.usecaseName %>UseCase
+{
+    public interface I<%= props.usecaseName %>UseCase
+    {
+        <% if (props.methodType == 'GET' && props.isList) { %> 
+            Task<IQueryable<<%= props.classTable.name %>Output>> Execute();
+        <% } else { %>
+            Task<<%= props.classTable.name %>Output> Execute();
+        <% } %>
+    }
+}

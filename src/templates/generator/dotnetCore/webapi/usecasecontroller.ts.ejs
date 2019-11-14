@@ -1,0 +1,55 @@
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Sieve.Models;
+using <%= props.projectName %>.Application.UseCases.<%= props.usecaseName %>UseCase;
+
+namespace <%= props.projectName %>.WebApi.UseCases.<%= props.usecaseName %>UseCase
+{
+    [Route("api/[controller]")]
+    public sealed class <%= props.classTable.name %>Controller : ControllerBase
+    {
+        private readonly I<%= props.usecaseName %>UseCase <%= props.usecaseName.charAt(0).toLowerCase() + props.usecaseName.slice(1) %>UseCase;
+        private readonly Presenter presenter;
+
+        public <%= props.classTable.name %>Controller(I<%= props.usecaseName %>UseCase <%= props.usecaseName.charAt(0).toLowerCase() + props.usecaseName.slice(1) %>UseCase,
+            Presenter presenter)
+        {
+            this.<%= props.usecaseName.charAt(0).toLowerCase() + props.usecaseName.slice(1) %>UseCase = <%= props.usecaseName.charAt(0).toLowerCase() + props.usecaseName.slice(1) %>UseCase;
+            this.presenter = presenter;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        <% if (props.methodType == 'GET' && props.isList) { %> 
+        /// <param name="sieveModel"></param>
+        <% } %>
+        /// <returns></returns>
+        [Http<%= props.methodType.charAt(0).toUpperCase() + props.methodType.slice(1).toLowerCase() %>   <% if (props.route) { %> ("<%= props.route %>")  <% } %>]
+        public async Task<IActionResult> <%= props.usecaseName %>(
+            <% if (props.methodType == 'GET' && props.isList) { %> 
+                SieveModel sieveModel
+            <% } %>
+        )
+        {
+            try
+            {
+                var output = await <%= props.usecaseName.charAt(0).toLowerCase() + props.usecaseName.slice(1) %>UseCase.Execute();
+                
+                <% if (props.methodType == 'GET' && props.isList) { %> 
+                    presenter.Populate(output, sieveModel);
+                <% } else {  %>
+                    presenter.Populate(output);
+                <% } %>
+
+                return presenter.ViewModel;
+            }
+            catch (Exception e)
+            {
+                presenter.Populate(e);
+                return presenter.ViewModel;
+            }
+        }
+    }
+}

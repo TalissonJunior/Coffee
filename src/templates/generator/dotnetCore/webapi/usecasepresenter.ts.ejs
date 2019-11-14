@@ -1,0 +1,80 @@
+using System;
+using JW;
+using Microsoft.AspNetCore.Mvc;
+<% if (props.methodType == 'GET' && props.isList) { %> 
+using Sieve.Models;
+using Sieve.Services;
+using System.Linq;
+<% } %>
+using <%= props.projectName %>.Application.Outputs;
+using <%= props.projectName %>.WebApi.Constants;
+
+namespace <%= props.projectName %>.WebApi.UseCases.<%= props.usecaseName %>UseCase
+{
+    public sealed class Presenter
+    {
+        <% if (props.methodType == 'GET' && props.isList) { %> 
+
+            private readonly ISieveProcessor sieveProcessor;
+            public IActionResult ViewModel { get; private set; }
+
+            public Presenter(ISieveProcessor sieveProcessor)
+            {
+                this.sieveProcessor = sieveProcessor;
+            }
+
+            public void Populate(IQueryable<<%= props.classTable.name %>Output> output,
+                SieveModel sieveModel
+            )
+            {
+                if (output == null)
+                {
+                    ViewModel = new NoContentResult();
+                    return;
+                }
+
+                var <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>s = sieveProcessor.Apply(sieveModel, output);
+                var result = <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>s.ToList();
+
+                var totalItems = output.ToList().Count;
+                var currentPage = sieveModel.Page.HasValue ? sieveModel.Page.Value : 1;
+                var pageSize = sieveModel.PageSize.HasValue ? sieveModel.PageSize.Value : totalItems;
+
+                var pager = new Pager(
+                    totalItems,
+                    currentPage,
+                    pageSize == 0 ? 1 : pageSize);
+
+                ViewModel = new OkObjectResult(new
+                {
+                    data = result,
+                    pager
+                });
+            }
+        
+        <% } else { %>
+            public IActionResult ViewModel { get; private set; }
+
+            public void Populate(<%= props.classTable.name %>Output output)
+            {
+                if (output == null)
+                {
+                    ViewModel = new NoContentResult();
+                    return;
+                }
+
+                ViewModel = new OkObjectResult(output);
+            }
+        
+        <% } %>
+
+        public void Populate(Exception e)
+        {
+            var error = new ErrorOutput(ErrorCode.InternalServerError, e.Message);
+            ViewModel = new ObjectResult(error)
+            {
+                StatusCode = 500
+            };
+        }
+    }
+}

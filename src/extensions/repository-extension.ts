@@ -1,5 +1,4 @@
 import { GluegunToolbox } from 'gluegun'
-import { JsonDB } from 'node-json-db';
 
 module.exports = (toolbox: GluegunToolbox) => {
     const { 
@@ -16,7 +15,7 @@ module.exports = (toolbox: GluegunToolbox) => {
         create
     };
 
-  async function create(): Promise<JsonDB> {
+  async function create() {
     const spinner = print.spin();  
   
     spinner.text = "Checking project configurations..."

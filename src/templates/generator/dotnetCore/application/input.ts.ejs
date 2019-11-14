@@ -1,0 +1,40 @@
+
+using System;
+using <%= props.projectName %>.Domain.<%= props.classTable.name %>;
+
+namespace <%= props.projectName %>.Application.Inputs
+{
+    public sealed class <%= props.classTable.name %>Input
+    {
+        <% props.classTable.properties.forEach(function(property, index){ %>
+            <% if(property.isForeignKey) { %>
+                public <%= property.foreign.table %>Input<% if(!property.isRequired) { %>? <% } %> <%= property.foreign.classProperty %> { get; set; }
+            <% } else { %>
+                public <%= property.type %><% if(!property.isRequired && (property.type == 'DateTime' || property.type == 'Guid')) { %>? <% } %> <%= property.name %> { get; set; }
+            <% } %> 
+        <% }); %>
+
+        public <%= props.classTable.name %> ConvertToDomain()
+        {
+            return new <%= props.classTable.name %>(
+                <% props.classTable.properties.filter(p => p.isRequired).forEach(function(property, index){ %>
+                    <% if(index > 0) { %> ,<% } %>
+                    <% if(property.isForeignKey) { %>
+                       <%= property.foreign.classProperty %>.ConvertToDomain()
+                    <% } else { %>
+                        <%= property.name %>
+                    <% } %> 
+                <% }); %>
+
+                <% props.classTable.properties.filter(p => !p.isRequired).forEach(function(property, index){ %>
+                    ,
+                    <% if(property.isForeignKey) { %>
+                        <%= property.foreign.classProperty.charAt(0).toLowerCase() + property.foreign.classProperty.slice(1) %>: <%= property.foreign.classProperty %>.ConvertToDomain()
+                    <% } else { %>
+                        <%= property.name.charAt(0).toLowerCase() +  property.name.slice(1) %> : <%= property.name %>
+                    <% } %> 
+                <% }); %>
+            );
+        }
+    }
+}

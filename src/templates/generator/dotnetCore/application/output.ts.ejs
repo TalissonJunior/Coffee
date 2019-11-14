@@ -1,0 +1,70 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Sieve.Attributes;
+using <%= props.projectName %>.Domain.<%= props.classTable.name %>;
+
+namespace <%= props.projectName %>.Application.Outputs
+{
+    public sealed class <%= props.classTable.name %>Output
+    {
+        <% props.classTable.properties.forEach(function(property, index){ %>
+            [Sieve(CanFilter = true, CanSort = true)]
+
+            <% if(property.isForeignKey) { %>
+                public <%= property.foreign.table %>Output <%= property.foreign.classProperty %> { get; set; }
+            <% } else { %>
+                public <%= property.type %> <%= property.name %> { get; set; }
+            <% } %>
+        <% }); %>
+
+        <% if (props.classTable.hasRelations) { %> 
+            <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
+                [Sieve(CanFilter = false, CanSort = false)]
+
+                <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+                    public List<<%= tableRelation.firstMiddleTablePropety.foreign.table %>Output> <%= tableRelation.firstMiddleTablePropety.foreign.table %>s { get; set; }
+                <% } else { %> 
+                    public List<<%= tableRelation.secondMiddleTablePropety.foreign.table %>Output> <%= tableRelation.secondMiddleTablePropety.foreign.table %>s { get; set; }
+                <% } %>
+
+            <% }); %>
+        <% } %>
+
+        public <%= props.classTable.name %>Output(<%= props.classTable.name %> <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>)
+        {
+            <% props.classTable.properties.forEach(function(property, index){ %>
+                <% if(property.isForeignKey) { %>
+                    <%= property.foreign.classProperty %> = 
+                    <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.<%= property.foreign.classProperty %> 
+                    != null ? new <%= property.foreign.table %>Output(<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.<%= property.foreign.classProperty %>) : null;;
+                <% } else { %>
+                    <%= property.name %> = <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.<%= property.name %>;
+                <% } %>
+            <% }); %>
+
+            <% if (props.classTable.hasRelations) { %> 
+                <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
+                    <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+                        if (<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.<%= tableRelation.firstMiddleTablePropety.foreign.table %>s != null)
+                        {
+                            <%= tableRelation.firstMiddleTablePropety.foreign.table %>s = <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.<%= tableRelation.firstMiddleTablePropety.foreign.table %>s?
+                                .Select(<%= tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %> => new <%= tableRelation.firstMiddleTablePropety.foreign.table %>Output(<%= tableRelation.firstMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.firstMiddleTablePropety.foreign.table.slice(1) %>))
+                                .ToList();
+                        }
+
+                    <% } else { %> 
+                        if (<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.<%= tableRelation.secondMiddleTablePropety.foreign.table %>s != null)
+                        {
+                            <%= tableRelation.secondMiddleTablePropety.foreign.table %>s = <%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.<%= tableRelation.secondMiddleTablePropety.foreign.table %>s?
+                                .Select(<%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %> => new <%= tableRelation.secondMiddleTablePropety.foreign.table %>Output(<%= tableRelation.secondMiddleTablePropety.foreign.table.charAt(0).toLowerCase() + tableRelation.secondMiddleTablePropety.foreign.table.slice(1) %>))
+                                .ToList();
+                        }
+                    <% } %>
+    
+                <% }); %>
+            <% } %>
+           
+        }
+    }
+}
