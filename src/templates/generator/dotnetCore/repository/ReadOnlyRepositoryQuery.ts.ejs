@@ -39,12 +39,7 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
                     
                     <% tableRelation.properties.forEach(function(property, index){ %>
 
-                        <% if(index < tableRelation.properties.length - 1) { %>
-                            " <%= tableRelation.tableName %>.<%= property.columnName %> AS <%= property.name %> " +
-                        <% } else { %>
-                            
-                            " <%= tableRelation.tableName %>.<%= property.columnName %> AS <%= property.name %>, " +
-                        <% } %>
+                        " <%= tableRelation.tableName %>.<%= property.columnName %> AS <%= property.name %>, " +
 
                     <% }); %>
 
@@ -86,7 +81,7 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
                 <% var foreignTable = props.classTables.find(ct => ct.name == property.foreign.table) %>
                 <% var currentProperty = props.classTable.properties.find(p => p.name == property.foreign.tableColumn) %>
                 
-                " JOIN <%= foreignTable.tableName %> AS t_<%= property.foreign.classProperty.toLowerCase() %>" +
+                " LEFT JOIN <%= foreignTable.tableName %> AS t_<%= property.foreign.classProperty.toLowerCase() %>" +
                 " ON <%= props.classTable.tableName %>.<%= property.columnName %> =  t_<%= property.foreign.classProperty.toLowerCase() %>.<%=currentProperty.columnName %>"
                 <% if(props.classTable.hasRelations) { %> +  <% } %>
                 
@@ -94,7 +89,7 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
 
             <% if(props.classTable.hasRelations) { %>
                 <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
-                    " JOIN <%= tableRelation.tableName %> " + 
+                    " LEFT JOIN <%= tableRelation.tableName %> " + 
 
                     <% if (tableRelation.firstMiddleTablePropety.foreign.table == props.classTable.name) { %> 
                         <% var currentProperty = props.classTable.properties.find(p => p.name == tableRelation.firstMiddleTablePropety.foreign.tableColumn) %>
@@ -104,7 +99,7 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
                         <% var table = props.classTables.find(ct => ct.name == tableRelation.secondMiddleTablePropety.foreign.table) %>
                         <% var currentForeignProperty = props.classTable.properties.find(p => p.name == tableRelation.secondMiddleTablePropety.foreign.tableColumn) %>
 
-                        " JOIN <%= table.tableName %> " + 
+                        " LEFT JOIN <%= table.tableName %> " + 
                         " ON <%= tableRelation.tableName %>.<%= tableRelation.secondMiddleTablePropety.columnName %> = <%= table.tableName %>.<%= currentForeignProperty.columnName %> "
 
                     <% } else { %> 
@@ -115,7 +110,7 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
                         <% var table = props.classTables.find(ct => ct.name == tableRelation.firstMiddleTablePropety.foreign.table) %>
                         <% var currentForeignProperty = props.classTable.properties.find(p => p.name == tableRelation.firstMiddleTablePropety.foreign.tableColumn) %>
 
-                        " JOIN <%= table.tableName %> " + 
+                        " LEFT JOIN <%= table.tableName %> " + 
                         " ON <%= tableRelation.tableName %>.<%= tableRelation.firstMiddleTablePropety.columnName %> = <%= table.tableName %>.<%= currentForeignProperty.columnName %> "
                         
                     <% } %>
@@ -181,7 +176,7 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
 
             <% if(props.classTable.hasRelations) { %>
                 <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
-                    " JOIN <%= tableRelation.tableName %> " + 
+                    " LEFT JOIN <%= tableRelation.tableName %> " + 
                    
                     <% if (tableRelation.firstMiddleTablePropety.foreign.table == props.classTable.name) { %> 
                         <% var currentProperty = props.classTable.properties.find(p => p.name == tableRelation.firstMiddleTablePropety.foreign.tableColumn) %>
@@ -199,7 +194,7 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
                         <% var table = props.classTables.find(ct => ct.name == tableRelation.secondMiddleTablePropety.foreign.table) %>
                         <% var currentForeignProperty = props.classTable.properties.find(p => p.name == tableRelation.secondMiddleTablePropety.foreign.tableColumn) %>
 
-                        " JOIN <%= table.tableName %> " + 
+                        " LEFT JOIN <%= table.tableName %> " + 
                         " ON <%= tableRelation.tableName %>.<%= tableRelation.secondMiddleTablePropety.columnName %> = <%= table.tableName %>.<%= currentForeignProperty.columnName %> "
 
                     <% } else { %> 
@@ -208,7 +203,7 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
                         <% var table = props.classTables.find(ct => ct.name == tableRelation.firstMiddleTablePropety.foreign.table) %>
                         <% var currentForeignProperty = props.classTable.properties.find(p => p.name == tableRelation.firstMiddleTablePropety.foreign.tableColumn) %>
 
-                        " JOIN <%= table.tableName %> " + 
+                        " LEFT JOIN <%= table.tableName %> " + 
                         " ON <%= tableRelation.tableName %>.<%= tableRelation.firstMiddleTablePropety.columnName %> = <%= table.tableName %>.<%= currentForeignProperty.columnName %> "
                         
                     <% } %>

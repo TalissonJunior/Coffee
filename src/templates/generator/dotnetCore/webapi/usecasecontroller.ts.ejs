@@ -2,9 +2,13 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Sieve.Models;
-using <%= props.projectName %>.Application.UseCases.<%= props.usecaseName %>UseCase;
+using <%= props.projectName %>.Application.UseCases.<%= props.usecaseName %>;
 
-namespace <%= props.projectName %>.WebApi.UseCases.<%= props.usecaseName %>UseCase
+<% if (props.methodType == 'PUT' || props.methodType == 'POST') { %> 
+    using <%= props.projectName %>.Application.Inputs;
+<% } %>
+
+namespace <%= props.projectName %>.WebApi.UseCases.<%= props.usecaseName %>
 {
     [Route("api/[controller]")]
     public sealed class <%= props.classTable.name %>Controller : ControllerBase
@@ -25,17 +29,26 @@ namespace <%= props.projectName %>.WebApi.UseCases.<%= props.usecaseName %>UseCa
         <% if (props.methodType == 'GET' && props.isList) { %> 
         /// <param name="sieveModel"></param>
         <% } %>
+        <% if (props.methodType == 'PUT' || props.methodType == 'POST') { %> 
+        /// <param name="input"></param>
+        <% } %>
         /// <returns></returns>
         [Http<%= props.methodType.charAt(0).toUpperCase() + props.methodType.slice(1).toLowerCase() %>   <% if (props.route) { %> ("<%= props.route %>")  <% } %>]
         public async Task<IActionResult> <%= props.usecaseName %>(
             <% if (props.methodType == 'GET' && props.isList) { %> 
                 SieveModel sieveModel
+            <% } else if (props.methodType == 'PUT' || props.methodType == 'POST') { %> 
+                [FromBody] <%= props.classTable.name %>Input input
             <% } %>
         )
         {
             try
             {
-                var output = await <%= props.usecaseName.charAt(0).toLowerCase() + props.usecaseName.slice(1) %>UseCase.Execute();
+                var output = await <%= props.usecaseName.charAt(0).toLowerCase() + props.usecaseName.slice(1) %>UseCase.Execute(
+                    <% if (props.methodType == 'PUT' || props.methodType == 'POST') { %> 
+                        input
+                    <% } %>
+                );
                 
                 <% if (props.methodType == 'GET' && props.isList) { %> 
                     presenter.Populate(output, sieveModel);

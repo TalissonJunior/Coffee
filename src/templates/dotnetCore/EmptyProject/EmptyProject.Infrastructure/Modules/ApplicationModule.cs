@@ -1,6 +1,5 @@
 ﻿using Autofac;
 using EmptyProject.Application;
-using System;
 
 namespace EmptyProject.Infrastructure.Modules
 {

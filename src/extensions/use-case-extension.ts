@@ -169,92 +169,90 @@ module.exports = (toolbox: GluegunToolbox) => {
     classTable.properties = _.orderBy(classTable.properties, ['isRequired'],['desc'])
 
     // Create the application outpus if it is GET
-    if(prompResult.methodtype == 'GET') {
+    spinner.text = "Checking model outputs...";
+    
+    const outputFilePath = 
+        filesystem.path(
+            outputsApplicationFolderPath, 
+            `${prompResult.modelName}Output.cs`
+        );
+
+    if(!await filesystem.existsAsync(outputFilePath)) {
+
+        // Create Application output
+        await generate({
+            template: 'generator/dotnetCore/application/output.ts.ejs',
+            target: outputFilePath,
+            props: { 
+                classTable,
+                projectName: JSON.parse(projectConfig).architecture.name
+            }
+        });
         
-        spinner.text = "Checking model outputs...";
+        // Format Application output
+        await toolbox.system.run(
+            'prettier --print-width 80 --no-semi --single-quote ' + 
+            ' --trailing-comma --write ' + 
+            `${applicationFolderPath}/Outputs/${prompResult.modelName}Output.cs`
+        )
+
+        spinner.stop();
+        print.newline();
         
-        const outputFilePath = 
-            filesystem.path(
-                outputsApplicationFolderPath, 
-                `${prompResult.modelName}Output.cs`
-            );
+        spinner.succeed("Created: " + outputFilePath);
 
-        if(!await filesystem.existsAsync(outputFilePath)) {
+        spinner.start();  
+    }  
 
-            // Create Application output
-            await generate({
-                template: 'generator/dotnetCore/application/output.ts.ejs',
-                target: outputFilePath,
-                props: { 
-                    classTable,
-                    projectName: JSON.parse(projectConfig).architecture.name
-                }
-            });
+    // Create output table dependencies
+    if(classTable.hasRelations) {
+        for (let index = 0; index < classTable.tableRelations.length; index++) {
+            const tableRelation = classTable.tableRelations[index];
+            let foreignTable;
             
-            // Format Application output
-            await toolbox.system.run(
-                'prettier --print-width 80 --no-semi --single-quote ' + 
-                ' --trailing-comma --write ' + 
-                `${applicationFolderPath}/Outputs/${prompResult.modelName}Output.cs`
-            )
+            if (tableRelation.firstMiddleTablePropety.foreign.table !== classTable.name) {  
+                foreignTable = classTables.find(ct => ct.name === tableRelation.firstMiddleTablePropety.foreign.table);
+            } else {  
+                foreignTable = classTables.find(ct => ct.name === tableRelation.secondMiddleTablePropety.foreign.table);
+            } 
 
-            spinner.stop();
-            print.newline();
-            
-            spinner.succeed("Created: " + outputFilePath);
+            const outputForeignFilePath = 
+                filesystem.path(
+                    outputsApplicationFolderPath, 
+                    `${foreignTable.name}Output.cs`
+                );
 
-            spinner.start();  
-        }  
-
-        // Create output table dependencies
-        if(classTable.hasRelations) {
-            for (let index = 0; index < classTable.tableRelations.length; index++) {
-                const tableRelation = classTable.tableRelations[index];
-                let foreignTable;
                 
-                if (tableRelation.firstMiddleTablePropety.foreign.table !== classTable.name) {  
-                    foreignTable = classTables.find(ct => ct.name === tableRelation.firstMiddleTablePropety.foreign.table);
-                } else {  
-                    foreignTable = classTables.find(ct => ct.name === tableRelation.secondMiddleTablePropety.foreign.table);
-                } 
+            if(!await filesystem.existsAsync(outputForeignFilePath)) {
+                
+                await generate({
+                    template: 'generator/dotnetCore/application/output.ts.ejs',
+                    target: outputForeignFilePath,
+                    props: { 
+                        classTable : foreignTable,
+                        projectName: JSON.parse(projectConfig).architecture.name
+                    }
+                });
 
-                const outputForeignFilePath = 
-                    filesystem.path(
-                        outputsApplicationFolderPath, 
-                        `${foreignTable.name}Output.cs`
-                    );
+                // Format Application output
+                await toolbox.system.run(
+                    'prettier --print-width 80 --no-semi --single-quote ' + 
+                    ' --trailing-comma --write ' + 
+                    `${applicationFolderPath}/Outputs/${foreignTable.name}Output.cs`
+                )
 
-                    
-                if(!await filesystem.existsAsync(outputForeignFilePath)) {
-                    
-                    await generate({
-                        template: 'generator/dotnetCore/application/output.ts.ejs',
-                        target: outputForeignFilePath,
-                        props: { 
-                            classTable : foreignTable,
-                            projectName: JSON.parse(projectConfig).architecture.name
-                        }
-                    });
+                spinner.stop();
+                print.newline();
+                
+                spinner.succeed("Created: " + outputForeignFilePath);
 
-                    // Format Application output
-                    await toolbox.system.run(
-                        'prettier --print-width 80 --no-semi --single-quote ' + 
-                        ' --trailing-comma --write ' + 
-                        `${applicationFolderPath}/Outputs/${foreignTable.name}Output.cs`
-                    )
-
-                    spinner.stop();
-                    print.newline();
-                    
-                    spinner.succeed("Created: " + outputForeignFilePath);
-
-                    spinner.start();    
-                }
+                spinner.start();    
             }
         }
     }
+
     // Create inputs
-    else {
+    if(prompResult.methodType !== 'GET')  {
         spinner.text = "Checking model inputs...";
 
         const inputFilePath = 
@@ -343,7 +341,7 @@ module.exports = (toolbox: GluegunToolbox) => {
 
     const useCaseFolder =  filesystem.path(
         useCasesApplicationFolderPath, 
-        `${prompResult.usecaseName}UseCase`
+        `${prompResult.usecaseName}`
     );
 
     if(await filesystem.existsAsync(useCaseFolder)) {
@@ -383,7 +381,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     await toolbox.system.run(
         'prettier --print-width 80 --no-semi --single-quote ' + 
         ' --trailing-comma --write ' + 
-        `${applicationFolderPath}/UseCases/${prompResult.usecaseName}UseCase/I${prompResult.usecaseName}UseCase.cs`
+        `${applicationFolderPath}/UseCases/${prompResult.usecaseName}/I${prompResult.usecaseName}UseCase.cs`
     )
 
     // Create usecase 
@@ -404,7 +402,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     await toolbox.system.run(
         'prettier --print-width 80 --no-semi --single-quote ' + 
         ' --trailing-comma --write ' + 
-        `${applicationFolderPath}/UseCases/${prompResult.usecaseName}UseCase/${prompResult.usecaseName}UseCase.cs`
+        `${applicationFolderPath}/UseCases/${prompResult.usecaseName}/${prompResult.usecaseName}UseCase.cs`
     )
 
     spinner.stop();
@@ -417,7 +415,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     
     const webapiUseCaseFolder =  filesystem.path(
         useCasesWebApiFolderPath, 
-        `${prompResult.usecaseName}UseCase`
+        `${prompResult.usecaseName}`
     );
 
     // Ensure that folder path is created
@@ -452,7 +450,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     await toolbox.system.run(
         'prettier --print-width 80 --no-semi --single-quote ' + 
         ' --trailing-comma --write ' + 
-        `${webapiFolderPath}/UseCases/${prompResult.usecaseName}UseCase/Presenter.cs`
+        `${webapiFolderPath}/UseCases/${prompResult.usecaseName}/Presenter.cs`
     )
 
     // Create usecase controller
@@ -473,7 +471,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     await toolbox.system.run(
         'prettier --print-width 80 --no-semi --single-quote ' + 
         ' --trailing-comma --write ' + 
-        `${webapiFolderPath}/UseCases/${prompResult.usecaseName}UseCase/${classTable.name}Controller.cs`
+        `${webapiFolderPath}/UseCases/${prompResult.usecaseName}/${classTable.name}Controller.cs`
     )
 
     spinner.stop();

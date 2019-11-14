@@ -5,12 +5,18 @@ using <%= props.projectName %>.Application.Outputs;
     using System.Linq;
 <% } %>
 
-namespace <%= props.projectName %>.Application.UseCases.<%= props.usecaseName %>UseCase
+<% if (props.methodType == 'PUT' || props.methodType == 'POST') { %> 
+    using <%= props.projectName %>.Application.Inputs;
+<% } %>
+
+namespace <%= props.projectName %>.Application.UseCases.<%= props.usecaseName %>
 {
     public interface I<%= props.usecaseName %>UseCase
     {
         <% if (props.methodType == 'GET' && props.isList) { %> 
             Task<IQueryable<<%= props.classTable.name %>Output>> Execute();
+        <% } else if (props.methodType == 'PUT' || props.methodType == 'POST') { %> 
+            Task<<%= props.classTable.name %>Output> Execute(<%= props.classTable.name %>Input input);
         <% } else { %>
             Task<<%= props.classTable.name %>Output> Execute();
         <% } %>
