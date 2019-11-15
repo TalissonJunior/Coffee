@@ -192,12 +192,14 @@ module.exports = (toolbox: GluegunToolbox) => {
         await _installUpdateDotNetCore()
       }
 
-      spinner.stop()
+      spinner.stop();
+      return true;
     } catch (e) {
       // Dotnet Core not installed
       spinner.text = `Installing .NET Core @${config.dotnetCoreCLIVersion}`
       await _installUpdateDotNetCore()
-      spinner.stop()
+      spinner.stop();
+      return false;
     }
 
     // Check dotnet core ef
