@@ -6,6 +6,14 @@ A CLI for coffee.
 
 Check out the documentation at https://github.com/infinitered/gluegun/tree/master/docs.
 
+
+## Installation
+
+```shell
+$ yarn install
+$ npm link
+```
+
 ## Publishing to NPM
 
 To package your CLI up for NPM, do this:
