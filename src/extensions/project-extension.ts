@@ -226,14 +226,14 @@ module.exports = (toolbox: GluegunToolbox) => {
     )
   }
 
-  async function _installDotnetCoreEfCli() {
+  /*async function _installDotnetCoreEfCli() {
     await toolbox.system.run(
       `dotnet tool install --global dotnet-ef --version 3.0.0`,
       {
         trim: true
       }
     )
-  }
+  }*/
 
   // Used to promp coffee designer
   async function _installUpdateElectronCli() {
