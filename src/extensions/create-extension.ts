@@ -1,7 +1,6 @@
 const replaceInFile = require('replace-in-file')
 const crypto = require('crypto')
 import { GluegunToolbox } from 'gluegun'
-import { GluegunFileSystemInspectTreeResult } from 'gluegun/build/types/toolbox/filesystem-types'
 
 module.exports = (toolbox: GluegunToolbox) => {
   const { strings, filesystem, plugin } = toolbox
@@ -30,9 +29,9 @@ module.exports = (toolbox: GluegunToolbox) => {
     // Create a copy of the template to handle replacements
     await filesystem.copyAsync(templatePath, temporaryPath)
 
-    const folderTree = (await filesystem.inspectTreeAsync(temporaryPath, {
+    const folderTree = await filesystem.inspectTreeAsync(temporaryPath, {
       relativePath: true
-    })) as GluegunFileSystemInspectTreeResult
+    })
 
     await _handleReplacements(
       folderTree,
@@ -100,9 +99,9 @@ module.exports = (toolbox: GluegunToolbox) => {
     // Create a copy of the template to handle replacements
     await filesystem.copyAsync(templatePath, temporaryPath)
 
-    const folderTree = (await filesystem.inspectTreeAsync(temporaryPath, {
+    const folderTree = await filesystem.inspectTreeAsync(temporaryPath, {
       relativePath: true
-    })) as GluegunFileSystemInspectTreeResult
+    })
 
     await _handleReplacements(
       folderTree,
@@ -125,7 +124,7 @@ module.exports = (toolbox: GluegunToolbox) => {
   }
 
   async function _handleReplacements(
-    tree: GluegunFileSystemInspectTreeResult,
+    tree: any,
     parentAbsolutePath: string,
     projectName: string,
     rootFolderName: string,
@@ -149,9 +148,9 @@ module.exports = (toolbox: GluegunToolbox) => {
     absolutePath = absolutePath.replace('EmptyProject', newProjectName)
 
     // map the new tree
-    const newTree = (await filesystem.inspectTreeAsync(absolutePath, {
+    const newTree = await filesystem.inspectTreeAsync(absolutePath, {
       relativePath: true
-    })) as GluegunFileSystemInspectTreeResult
+    })
 
     if (newTree.children) {
       for (let index = 0; index < newTree.children.length; index++) {

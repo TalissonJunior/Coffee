@@ -25,7 +25,7 @@ app.on('ready', () => {
   // Disable menu
   mainWindow.setMenuBarVisibility(false)
   mainWindow.setAutoHideMenuBar(true)
-  mainWindow.maximize();
+  mainWindow.maximize()
 
   /// Open index.html
   mainWindow.loadFile(path.resolve(__dirname, 'index.html'))
@@ -33,8 +33,8 @@ app.on('ready', () => {
 
 // Catch when close button has beign trigger
 ipcMain.on('app:quit', () => {
-  app.quit();
-});
+  app.quit()
+})
 
 // Catch page load, and send the last diagram json
 ipcMain.on('page:load', () => {
@@ -58,21 +58,11 @@ ipcMain.on('page:load', () => {
     }
 
     if (
-      fs.existsSync(
-        path.resolve(
-          currentDir,
-          projectDirName,
-          `${version}.json`
-        )
-      )
+      fs.existsSync(path.resolve(currentDir, projectDirName, `${version}.json`))
     ) {
       // Gets the data from the latest version
       latestJson = fs.readFileSync(
-        path.resolve(
-          currentDir,
-          projectDirName,
-          `${version}.json`
-        ),
+        path.resolve(currentDir, projectDirName, `${version}.json`),
         { encoding: 'utf8' }
       )
     }
@@ -89,10 +79,7 @@ ipcMain.on('change', (e, json) => {
   }
 
   fs.writeFileSync(
-    path.resolve(
-      currentDir,
-      `${projectDirName}/${version}.json`
-    ),
+    path.resolve(currentDir, `${projectDirName}/${version}.json`),
     json
   )
 })
@@ -100,10 +87,7 @@ ipcMain.on('change', (e, json) => {
 // If has only change position then just update the json
 ipcMain.on('change:position', (e, json) => {
   fs.writeFileSync(
-    path.resolve(
-      currentDir,
-      `${projectDirName}/${version}.json`
-    ),
+    path.resolve(currentDir, `${projectDirName}/${version}.json`),
     json
   )
 })

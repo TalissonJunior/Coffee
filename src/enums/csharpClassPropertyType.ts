@@ -14,9 +14,9 @@ export enum CSharpClassPropertyType {
   'List<string>' = 'List<string>',
   'List<int>' = 'List<int>',
   'List<long>' = 'List<long>',
-  'List<decimal>'= 'List<decimal>',
+  'List<decimal>' = 'List<decimal>',
   'List<guid>' = 'List<guid>',
   'List<bool>' = 'List<bool>',
   'List<float>' = 'List<float>',
-  'List<DateTime>' = 'List<DateTime>' 
+  'List<DateTime>' = 'List<DateTime>'
 }

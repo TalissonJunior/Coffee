@@ -1,6 +1,6 @@
 {
   "name": "coffee",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "coffee CLI",
   "private": true,
   "bin": {
@@ -9,7 +9,7 @@
   "scripts": {
     "format": "prettier --write **/*.{js,ts,tsx,json}",
     "lint": "tslint -p .",
-    "clean-build": "rm -rf ./build",
+    "clean-build": "rm -rf || rmdir /s ./build",
     "compile": "tsc -p .",
     "copy-templates": "if [ -e ./src/templates ]; then cp -a ./src/templates ./build/; fi",
     "build": "yarn format && yarn lint && yarn clean-build && yarn compile && yarn copy-templates",

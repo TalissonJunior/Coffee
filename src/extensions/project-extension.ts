@@ -4,11 +4,7 @@ import { CliProjectConfig } from '../models/cli-project-config'
 import * as os from 'os'
 
 module.exports = (toolbox: GluegunToolbox) => {
-  const { 
-    print, 
-    config, 
-    filesystem 
-  } = toolbox
+  const { print, config, filesystem } = toolbox
 
   toolbox.project = {
     hasValidName,
@@ -38,48 +34,49 @@ module.exports = (toolbox: GluegunToolbox) => {
   }
 
   async function isInsideDotnetCore() {
-    const spinner = print.spin();
-    spinner.start();
-    
-    let configFile = await filesystem.readAsync(
+    const spinner = print.spin()
+    spinner.start()
+
+    let configFileString = await filesystem.readAsync(
       filesystem.path(config.project.configFileName)
     )
+    let configFile: CliProjectConfig
 
-    if(configFile) {
-      configFile = JSON.parse(configFile) as CliProjectConfig
+    if (configFileString) {
+      configFile = JSON.parse(configFileString) as CliProjectConfig
     }
 
     if (configFile && configFile.architecture.type === 'DotnetCore') {
-      spinner.stop();
+      spinner.stop()
       return configFile
     }
 
-    spinner.stop();
+    spinner.stop()
     print.error("You are not inside of a '.Net Core' project")
     print.info(
       'If you are inside a dotnet core project make' +
-      ` sure you have a '${config.project.configFileName}' in the root directory.`
+        ` sure you have a '${config.project.configFileName}' in the root directory.`
     )
 
     print.info('To create a new .Net Core project run:')
-    print.success(' coffee new yourProjectName --dotnetcore');
+    print.success(' coffee new yourProjectName --dotnetcore')
 
-    return false;
+    return false
   }
 
   async function checkDependencies(projectType: ProjectType) {
     switch (projectType) {
       case ProjectType.angular:
-        await _checkPrettierDependencies();
+        await _checkPrettierDependencies()
         return _checkAngularDependencies()
       case ProjectType.dotnetCore:
         await _checkElectronDependencies()
-        await _checkPrettierDependencies();
-        return _checkDotnetCoreDependencies();
+        await _checkPrettierDependencies()
+        return _checkDotnetCoreDependencies()
       default:
         await _checkDotnetCoreDependencies()
         await _checkElectronDependencies()
-        await _checkPrettierDependencies();
+        await _checkPrettierDependencies()
         return _checkAngularDependencies()
     }
   }
@@ -194,7 +191,7 @@ module.exports = (toolbox: GluegunToolbox) => {
         spinner.text = `Updating .Net Core from @${installedDotnetCoreCLIVersion} to @${config.dotnetCoreCLIVersion}.`
         await _installUpdateDotNetCore()
       }
-      
+
       spinner.stop()
     } catch (e) {
       // Dotnet Core not installed
@@ -202,15 +199,12 @@ module.exports = (toolbox: GluegunToolbox) => {
       await _installUpdateDotNetCore()
       spinner.stop()
     }
-    
+
     // Check dotnet core ef
     try {
-      await toolbox.system.run(
-        'dotnet-ef --version',
-        {
-          trim: true
-        }
-      )
+      await toolbox.system.run('dotnet-ef --version', {
+        trim: true
+      })
 
       spinner.stop()
       return true
@@ -232,7 +226,6 @@ module.exports = (toolbox: GluegunToolbox) => {
     )
   }
 
-  
   async function _installDotnetCoreEfCli() {
     await toolbox.system.run(
       `dotnet tool install --global dotnet-ef --version 3.0.0`,
@@ -263,9 +256,8 @@ module.exports = (toolbox: GluegunToolbox) => {
   }
 
   async function _installUpdateDotNetCore() {
-    
     try {
-      const spinner = print.spin();
+      const spinner = print.spin()
       const dotnetTempDir = filesystem.path(
         os.tmpdir(),
         'coffee-installations/dotnetcore'
@@ -273,38 +265,39 @@ module.exports = (toolbox: GluegunToolbox) => {
 
       // Ensure that the temporary folder is created
       await filesystem.dirAsync(dotnetTempDir)
-      
-      spinner.start();
+
+      spinner.start()
 
       // Windows 64
       if (os.arch() === 'x64') {
-        const baseUrl = config.dotnetCoreInstaller.baseUrl;
-        const dotnetCoreInstallerUrlx64 = baseUrl + config.dotnetCoreInstaller.downloadUrlx64;
-        const pathToSave = filesystem.path(dotnetTempDir, 'dotnet-sdk-3.0.100-win-x64.exe');
-        
-        spinner.text = "Downloading dotnet sdk 3.0.100....";
+        const baseUrl = config.dotnetCoreInstaller.baseUrl
+        const dotnetCoreInstallerUrlx64 =
+          baseUrl + config.dotnetCoreInstaller.downloadUrlx64
+        const pathToSave = filesystem.path(
+          dotnetTempDir,
+          'dotnet-sdk-3.0.100-win-x64.exe'
+        )
+
+        spinner.text = 'Downloading dotnet sdk 3.0.100....'
 
         const response = await toolbox.utils.downloadFileToDisk(
-          dotnetCoreInstallerUrlx64, 
+          dotnetCoreInstallerUrlx64,
           pathToSave
-        );
+        )
 
-        spinner.stop();
-        
-        if(response.statusCode !== 200) {
-          print.info('Failed to download dotnet sdk 3.0.100');
-          print.info(`Reason: ${response.statusMessage}.`);
-          return;
+        spinner.stop()
+
+        if (response.statusCode !== 200) {
+          print.info('Failed to download dotnet sdk 3.0.100')
+          print.info(`Reason: ${response.statusMessage}.`)
+          return
         }
 
-        print.info('Started installer...');
+        print.info('Started installer...')
 
-        await toolbox.system.run(
-          `start ${pathToSave}`,
-          {
-            trim: true
-          }
-        )
+        await toolbox.system.run(`start ${pathToSave}`, {
+          trim: true
+        })
 
         await toolbox.system.run(
           `dotnet tool install --global dotnet-ef --version 3.0.0`,
@@ -313,38 +306,39 @@ module.exports = (toolbox: GluegunToolbox) => {
           }
         )
 
-        return true;
+        return true
       }
       // Windows 32
       else if (os.arch() === 'x32') {
-        const baseUrl = config.dotnetCoreInstaller.baseUrl;
-        const dotnetCoreInstallerUrlx86 = baseUrl + config.dotnetCoreInstaller.downloadUrlx86;
-        const pathToSave = filesystem.path(dotnetTempDir, 'dotnet-sdk-3.0.100-win-x86.exe');
-        
-        spinner.text = "Downloading dotnet sdk 3.0.100....";
+        const baseUrl = config.dotnetCoreInstaller.baseUrl
+        const dotnetCoreInstallerUrlx86 =
+          baseUrl + config.dotnetCoreInstaller.downloadUrlx86
+        const pathToSave = filesystem.path(
+          dotnetTempDir,
+          'dotnet-sdk-3.0.100-win-x86.exe'
+        )
+
+        spinner.text = 'Downloading dotnet sdk 3.0.100....'
 
         print.debug(dotnetCoreInstallerUrlx86)
         const response = await toolbox.utils.downloadFileToDisk(
-          dotnetCoreInstallerUrlx86, 
+          dotnetCoreInstallerUrlx86,
           pathToSave
-        );
+        )
 
-        spinner.stop();
-        
-        if(response.statusCode !== 200) {
-          print.info('Failed to download dotnet sdk 3.0.100');
-          print.info(`Reason: ${response.statusMessage}.`);
-          return;
+        spinner.stop()
+
+        if (response.statusCode !== 200) {
+          print.info('Failed to download dotnet sdk 3.0.100')
+          print.info(`Reason: ${response.statusMessage}.`)
+          return
         }
 
-        print.info('Started installer...');
+        print.info('Started installer...')
 
-        await toolbox.system.run(
-          `start ${pathToSave}`,
-          {
-            trim: true
-          }
-        )
+        await toolbox.system.run(`start ${pathToSave}`, {
+          trim: true
+        })
 
         await toolbox.system.run(
           `dotnet tool install --global dotnet-ef --version 3.0.0`,
@@ -353,37 +347,38 @@ module.exports = (toolbox: GluegunToolbox) => {
           }
         )
 
-        return true;
+        return true
       }
       // Mac os
       else if (process.platform === 'darwin') {
-        const baseUrl = config.dotnetCoreInstaller.baseUrl;
-        const dotnetCoreInstallerMacOs = baseUrl + config.dotnetCoreInstaller.downloadUrlMacOs;
-        const pathToSave = filesystem.path(dotnetTempDir, 'dotnet-sdk-3.0.100-osx-x64');
-        
-        spinner.text = "Downloading dotnet sdk 3.0.100....";
+        const baseUrl = config.dotnetCoreInstaller.baseUrl
+        const dotnetCoreInstallerMacOs =
+          baseUrl + config.dotnetCoreInstaller.downloadUrlMacOs
+        const pathToSave = filesystem.path(
+          dotnetTempDir,
+          'dotnet-sdk-3.0.100-osx-x64'
+        )
+
+        spinner.text = 'Downloading dotnet sdk 3.0.100....'
 
         const response = await toolbox.utils.downloadFileToDisk(
-          dotnetCoreInstallerMacOs, 
+          dotnetCoreInstallerMacOs,
           pathToSave
-        );
-
-        spinner.stop();
-
-        if(response.statusCode !== 200) {
-          print.info('Failed to download dotnet sdk 3.0.100');
-          print.info(`Reason: ${response.statusMessage}.`);
-          return;
-        }
-        
-        print.info('Started installer...');
-
-        await toolbox.system.run(
-          `sudo installer -pkg ${pathToSave}`,
-          {
-            trim: true
-          }
         )
+
+        spinner.stop()
+
+        if (response.statusCode !== 200) {
+          print.info('Failed to download dotnet sdk 3.0.100')
+          print.info(`Reason: ${response.statusMessage}.`)
+          return
+        }
+
+        print.info('Started installer...')
+
+        await toolbox.system.run(`sudo installer -pkg ${pathToSave}`, {
+          trim: true
+        })
 
         await toolbox.system.run(
           `dotnet tool install --global dotnet-ef --version 3.0.0`,
@@ -392,31 +387,29 @@ module.exports = (toolbox: GluegunToolbox) => {
           }
         )
 
-        print.info('Finished installer...');
-        return true;
-      } 
-      else {
-        spinner.stop();
+        print.info('Finished installer...')
+        return true
+      } else {
+        spinner.stop()
         print.info(
           `${print.xmark} Couldn´t install .Net Core ${config.dotnetCoreCLIVersion}.`
         )
         print.info(
           `You can manually install on [https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0.0/3.0.0-download.md]`
         )
-        return false;
+        return false
       }
     } catch (e) {
-
-      print.debug(e);
-      print.spin().stop();
+      print.debug(e)
+      print.spin().stop()
       print.info(
         `${print.xmark} Couldn´t install .Net Core ${config.dotnetCoreCLIVersion}.`
       )
       print.info(
         `You can manually install on [https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0.0/3.0.0-download.md]`
       )
-      
-      return false;
+
+      return false
     }
   }
 

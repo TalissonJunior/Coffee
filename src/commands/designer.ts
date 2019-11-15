@@ -4,36 +4,30 @@ import { ProjectType } from '../enums/projectType'
 module.exports = {
   name: 'designer',
   run: async (toolbox: GluegunToolbox) => {
-    const {
-      print,
-      project,
-      designer,
-      prompt,
-      dotnetcore
-    } = toolbox
+    const { print, project, designer, prompt, dotnetcore } = toolbox
 
-    const isInsideDotnetCore = await project.isInsideDotnetCore();
-    
-    if(!isInsideDotnetCore) { 
-      return;
+    const isInsideDotnetCore = await project.isInsideDotnetCore()
+
+    if (!isInsideDotnetCore) {
+      return
     }
-    
+
     const allInstalled = await project.checkDependencies(ProjectType.dotnetCore)
 
-    if(allInstalled) {
-      await designer.start();
-      
-      const hasChange = await designer.hasChangeClassTables();
+    if (allInstalled) {
+      await designer.start()
 
-      print.info(`Coffe Designer has ended.`);
-      print.newline();
+      const hasChange = await designer.hasChangeClassTables()
 
-      if(!hasChange) {
-        print.info('There was no change to apply.');
-        
-        return;
+      print.info(`Coffe Designer has ended.`)
+      print.newline()
+
+      if (!hasChange) {
+        print.info('There was no change to apply.')
+
+        return
       }
-      
+
       const requiredResult = await prompt.ask([
         {
           type: 'radio',
@@ -42,33 +36,31 @@ module.exports = {
           choices: ['Yes', 'No']
         }
       ])
-  
+
       const updateProject = requiredResult.required === 'Yes' ? true : false
-      
-      if(!updateProject) {
-        print.newline();
+
+      if (!updateProject) {
+        print.newline()
         print.info('Don´t forget to update your project')
-        print.newline();
-        print.info('run: ');
-        print.info(' coffee update');
-        return;
+        print.newline()
+        print.info('run: ')
+        print.info(' coffee update')
+        return
       }
-      
-      const spinner = print.spin();
-      spinner.start();
 
-      spinner.text = 'Updating project...';
+      const spinner = print.spin()
+      spinner.start()
 
-      await dotnetcore.updateEntitiesAndContext();
-      await dotnetcore.updateDomains();
+      spinner.text = 'Updating project...'
 
-      spinner.stop();
-      print.newline();
-      print.info(`${print.checkmark} Project was successfully updated`);
-    }
-    else {
+      await dotnetcore.updateEntitiesAndContext()
+      await dotnetcore.updateDomains()
+
+      spinner.stop()
+      print.newline()
+      print.info(`${print.checkmark} Project was successfully updated`)
+    } else {
       print.info('Failed to install .Net Core dependencies...')
     }
-   
   }
 }
