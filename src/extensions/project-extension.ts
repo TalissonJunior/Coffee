@@ -201,7 +201,7 @@ module.exports = (toolbox: GluegunToolbox) => {
     }
 
     // Check dotnet core ef
-    try {
+    /*try {
       await toolbox.system.run('dotnet-ef --version', {
         trim: true
       })
@@ -214,7 +214,7 @@ module.exports = (toolbox: GluegunToolbox) => {
       await _installDotnetCoreEfCli()
       spinner.stop()
       return false
-    }
+    }*/
   }
 
   async function _installUpdateAngularCli() {
