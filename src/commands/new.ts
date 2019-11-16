@@ -8,6 +8,7 @@ module.exports = {
     const {
       parameters,
       print,
+      dependencies,
       project,
       config,
       createDotnetCoreProject,
@@ -22,7 +23,7 @@ module.exports = {
     // a spinner starts with the text you provide
     const spinner = print.spin('Validating project name...')
 
-    if (!project.hasValidName(name)) {
+    if (!dependencies.hasValidProjectName(name)) {
       print.info(
         `${print.xmark} The project name can´t contain special characters.`
       )
@@ -62,22 +63,22 @@ module.exports = {
 
     if (
       type === ProjectType.angular &&
-      !project.nameHasSuffix(name, frontendSuffix)
+      !dependencies.projectNameHasSuffix(name, frontendSuffix)
     ) {
       addSuffix = await prompt.confirm(
         `Do you want cli to add the suffix "${frontendSuffix}" to project name?`
       )
     } else if (
       type === ProjectType.dotnetCore &&
-      !project.nameHasSuffix(name, backendSuffix)
+      !dependencies.projectNameHasSuffix(name, backendSuffix)
     ) {
       addSuffix = await prompt.confirm(
         `Do you want cli to add the suffix "${backendSuffix}" to project name?`
       )
     } else if (
       type === ProjectType.both &&
-      (!project.nameHasSuffix(name, frontendSuffix) ||
-        !project.nameHasSuffix(name, backendSuffix))
+      (!dependencies.projectNameHasSuffix(name, frontendSuffix) ||
+        !dependencies.projectNameHasSuffix(name, backendSuffix))
     ) {
       addSuffix = await prompt.confirm(
         `Do you want cli to add the suffixes "${frontendSuffix}", "${backendSuffix}" to project name?`
@@ -121,7 +122,7 @@ module.exports = {
       return
     }
 
-    const response = await project.checkDependencies(type)
+    const response = await dependencies.checkDependencies(type)
 
     if (response) {
       spinner.start()
@@ -129,7 +130,7 @@ module.exports = {
       if (type === ProjectType.dotnetCore) {
         spinner.text = `Creating ${strings.kebabCase(backendProjectName)}...`
 
-        const path = await createDotnetCoreProject(backendProjectName)
+        const path = await project.createDotnetCore(backendProjectName)
 
         spinner.stop()
 

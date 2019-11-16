@@ -1,0 +1,40 @@
+{
+  "AppSettings": {
+    "JwtSettings": {
+      "Secret": "<%= props.jwt.secret %>",
+      "TokenDuration": "<%= props.jwt.tokenDuration %>",
+      "Issuer": "<%= props.jwt.issuer %>",
+      "Audience": "<%= props.jwt.audience %>",
+      "PasswordResetTokenDutation": "<%= props.jwt.passwordResetTokenDuration %>"
+    },
+    "AllowedHosts": "*",
+    "App": {
+      "Title": "<% if (props.app.env) { %><%= props.app.env %> <% } %><%= props.app.title %>: Clean Architecture",
+      "Description": "<% if (props.app.env) { %><%= props.app.env %> <% } %>Web Api for <%= props.app.title %>",
+      "Version": "<% if (props.app.env) { %> <%= props.app.env %> - <% } %>v1",
+      "TermsOfService": "TermsOfService"
+    },
+    "Uploads": {
+      "BaseUrl": "http://localhost:55570/",
+      "Images": "wwwroot/uploads/images",
+      "ImagesOutputUrl": "files/images"
+    },
+    "EmailSettings": {
+      "Host": "<%= props.emailSettings.host %>",
+      "Port": 587,
+      "IsSSL": false,
+      "Email": "<%= props.emailSettings.email %>",
+      "UserName": "<%= props.emailSettings.email %>",
+      "Password": "<%= props.emailSettings.password %>",
+      "EmailTemplates": [
+        {
+          "Name": "FORGET_PASSWORD",
+          "Html": "./wwwroot/EmailTemplates/forget_password.html"
+        }
+      ]
+    },
+    "Client": {
+      "ServerURL": "http://localhost:4200"
+    }
+  }
+}
