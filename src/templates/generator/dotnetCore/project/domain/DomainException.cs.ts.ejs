@@ -1,0 +1,12 @@
+﻿using System;
+
+namespace <%= props.projectName %>.Domain
+{
+    public class DomainException : Exception
+    {
+        internal DomainException(string message)
+            : base(message)
+        {
+        }
+    }
+}

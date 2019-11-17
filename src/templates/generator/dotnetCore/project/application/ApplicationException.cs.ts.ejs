@@ -1,0 +1,12 @@
+﻿using System;
+
+namespace <%= props.projectName %>.Application
+{
+    public class ApplicationException : Exception
+    {
+        internal ApplicationException(string message)
+               : base(message)
+        {
+        }
+    }
+}

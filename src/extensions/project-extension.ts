@@ -35,6 +35,7 @@ module.exports = (toolbox: GluegunToolbox) => {
 
     const projectName = pascalCaseName;
     const projectFolder = filesystem.path(kebabCaseName);
+    const cleanProjectName = name.replace('backend', '').replace('Backend', '');
 
     // Ensure project folder is created
     await filesystem.dirAsync(projectFolder);
@@ -54,12 +55,36 @@ module.exports = (toolbox: GluegunToolbox) => {
       target: filesystem.path(projectFolder, '.gitignore')
     });
 
+    // Create README.md file
+     await generate({
+      template: 'generator/dotnetCore/project/README.md.ts.ejs',
+      target: filesystem.path(projectFolder, 'README.md'),
+      props: {
+        projectName: strings.upperFirst(cleanProjectName),
+        webapiProjectName: `${projectName}.WebApi`
+      }
+    });
+
+    // Create LICENSE file
+    await generate({
+      template: 'generator/dotnetCore/project/LICENSE.md.ts.ejs',
+      target: filesystem.path(projectFolder, 'LICENSE.md')
+    });
+
     spinner.stop();
 
-    await _createDotnetCoreWebApi(kebabCaseName);
+    await _createDotnetCoreWebApiLibrary(kebabCaseName);
+    await _createDotnetCoreApplicationLibrary(kebabCaseName);
+    await _createDotnetCoreDomainLibrary(kebabCaseName);
+    await _createDotnetCoreInfrastructureLibrary(kebabCaseName);
+    
+    await _addDotnerCoreLibrariesReference(kebabCaseName);
+    await _createDotnetCoreSolution(kebabCaseName);
+
+    await _installDotnetCorePackages(kebabCaseName);
   }
 
-  async function _createDotnetCoreWebApi(projectFolderName: string) {
+  async function _createDotnetCoreWebApiLibrary(projectFolderName: string) {
     const spinner = print.spin()
 
     spinner.text = 'Checking project configurations...'
@@ -80,10 +105,423 @@ module.exports = (toolbox: GluegunToolbox) => {
     const projectName = JSON.parse(projectConfig).architecture.name;
 
     // Prepare all files to generate
-    const filesToCreate = [
+    const filesToCreate = _webapiFiles(projectName, webapiFolderName);
+
+    for (let index = 0; index < filesToCreate.length; index++) {
+      const fileToCreate = filesToCreate[index];
+      
+      await generate({
+        template: `generator/dotnetCore/project/webapi/${fileToCreate.templatePathName}`,
+        target: filesystem.path(
+          projectFolderName, 
+          webapiFolderName, 
+          fileToCreate.templatePathTarget
+        ),
+        props: fileToCreate.props
+      });
+    }
+    
+    spinner.succeed();
+  }
+
+  async function _createDotnetCoreApplicationLibrary(projectFolderName: string) {
+    const spinner = print.spin()
+
+    spinner.text = 'Checking project configurations...'
+
+    const projectConfig = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), projectFolderName, config.project.configFileName)
+    );
+  
+    if (!projectConfig) {
+        spinner.fail(`Coudn´t find the ${config.project.configFileName} file`)
+        return;
+    }
+
+    spinner.text = 'Creating Application files...'
+
+    // Get project configurations from 'coffee-cli.json'
+    const applicationFolderName = JSON.parse(projectConfig).architecture.application;
+    const projectName = JSON.parse(projectConfig).architecture.name;
+
+    // Prepare all files to generate
+    const filesToCreate = _applicationFiles(projectName, applicationFolderName);
+
+    for (let index = 0; index < filesToCreate.length; index++) {
+      const fileToCreate = filesToCreate[index];
+      
+      await generate({
+        template: `generator/dotnetCore/project/application/${fileToCreate.templatePathName}`,
+        target: filesystem.path(
+          projectFolderName, 
+          applicationFolderName, 
+          fileToCreate.templatePathTarget
+        ),
+        props: fileToCreate.props
+      });
+    }
+    
+    spinner.succeed();
+  }
+
+  async function _createDotnetCoreDomainLibrary(projectFolderName: string) {
+    const spinner = print.spin()
+
+    spinner.text = 'Checking project configurations...'
+
+    const projectConfig = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), projectFolderName, config.project.configFileName)
+    );
+  
+    if (!projectConfig) {
+        spinner.fail(`Coudn´t find the ${config.project.configFileName} file`)
+        return;
+    }
+
+    spinner.text = 'Creating Domain files...'
+
+    // Get project configurations from 'coffee-cli.json'
+    const domainFolderName = JSON.parse(projectConfig).architecture.domain;
+    const projectName = JSON.parse(projectConfig).architecture.name;
+
+    // Prepare all files to generate
+    const filesToCreate = _domainFiles(projectName, domainFolderName);
+
+    for (let index = 0; index < filesToCreate.length; index++) {
+      const fileToCreate = filesToCreate[index];
+      
+      await generate({
+        template: `generator/dotnetCore/project/domain/${fileToCreate.templatePathName}`,
+        target: filesystem.path(
+          projectFolderName, 
+          domainFolderName, 
+          fileToCreate.templatePathTarget
+        ),
+        props: fileToCreate.props
+      });
+    }
+    
+    spinner.succeed();
+  }
+
+  async function _createDotnetCoreInfrastructureLibrary(projectFolderName: string) {
+    const spinner = print.spin()
+
+    spinner.text = 'Checking project configurations...'
+
+    const projectConfig = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), projectFolderName, config.project.configFileName)
+    );
+  
+    if (!projectConfig) {
+        spinner.fail(`Coudn´t find the ${config.project.configFileName} file`)
+        return;
+    }
+
+    spinner.text = 'Creating Infrastructure files...'
+
+    // Get project configurations from 'coffee-cli.json'
+    const infrastructureFolderName = JSON.parse(projectConfig).architecture.infrastructure;
+    const projectName = JSON.parse(projectConfig).architecture.name;
+
+    // Prepare all files to generate
+    const filesToCreate = _infrastructureFiles(projectName, infrastructureFolderName);
+
+    for (let index = 0; index < filesToCreate.length; index++) {
+      const fileToCreate = filesToCreate[index];
+      
+      await generate({
+        template: `generator/dotnetCore/project/infrastructure/${fileToCreate.templatePathName}`,
+        target: filesystem.path(
+          projectFolderName, 
+          infrastructureFolderName, 
+          fileToCreate.templatePathTarget
+        ),
+        props: fileToCreate.props
+      });
+    }
+    
+    spinner.succeed();
+  }
+
+  async function _createDotnetCoreSolution(projectFolderName: string) {
+    const spinner = print.spin()
+
+    spinner.text = 'Checking project configurations...'
+
+    const projectConfig = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), projectFolderName, config.project.configFileName)
+    );
+  
+    if (!projectConfig) {
+        spinner.fail(`Coudn´t find the ${config.project.configFileName} file`)
+        return;
+    }
+
+    // Get project configurations from 'coffee-cli.json'
+    const coffeeCliArchitecture = JSON.parse(projectConfig).architecture;
+    const projectName = coffeeCliArchitecture.name;
+
+    const solutionFileName = projectName;
+    let solutionScript = `dotnet sln ${solutionFileName}.sln`;
+
+    const webapiFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.webapi
+    );
+
+    const applicationFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.application
+    );
+
+    const domainFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.domain
+    );
+
+    const infrastructureFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.infrastructure
+    );
+
+    if(await filesystem.existsAsync(webapiFolderPath)) {
+      const webapiFolderName = coffeeCliArchitecture.webapi;
+
+      solutionScript += ` add ${webapiFolderName}/${webapiFolderName}.csproj`;
+    }
+    
+    if(await filesystem.existsAsync(applicationFolderPath)) {
+      const applicationFolderName = coffeeCliArchitecture.application;
+
+      solutionScript += ` ${applicationFolderName}/${applicationFolderName}.csproj`;
+    }
+
+    if(await filesystem.existsAsync(domainFolderPath)) {
+      const domainFolderName = coffeeCliArchitecture.domain;
+
+      solutionScript += ` ${domainFolderName}/${domainFolderName}.csproj`;
+    }
+
+    if(await filesystem.existsAsync(infrastructureFolderPath)) {
+      const infrastructureFolderName = coffeeCliArchitecture.infrastructure;
+
+      solutionScript += ` ${infrastructureFolderName}/${infrastructureFolderName}.csproj`;
+    }
+    
+    spinner.text = 'Creating solution...'
+    
+    try {
+      await toolbox.system.run(
+        `cd ${projectFolderName} && dotnet new sln --name=${solutionFileName}`, 
+        { trim: true}
+      );
+
+      await toolbox.system.run(`cd ${projectFolderName} && ${solutionScript}`, { trim: true})
+      spinner.succeed();
+    }
+    catch(e) {
+      spinner.fail('Failed to create solution...');
+    }
+    
+  }
+
+  async function _addDotnerCoreLibrariesReference(projectFolderName: string) {
+    const spinner = print.spin()
+
+    spinner.text = 'Checking project configurations...'
+
+    const projectConfig = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), projectFolderName, config.project.configFileName)
+    );
+  
+    if (!projectConfig) {
+        spinner.fail(`Coudn´t find the ${config.project.configFileName} file`)
+        return;
+    }
+
+    // Get project configurations from 'coffee-cli.json'
+    const coffeeCliArchitecture = JSON.parse(projectConfig).architecture;
+
+    const webapiFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.webapi
+    );
+
+    const applicationFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.application
+    );
+
+    const domainFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.domain
+    );
+
+    const infrastructureFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.infrastructure
+    );
+
+    const existsWebapiLibrary = await filesystem.existsAsync(webapiFolderPath);
+    const existsApplicationLibrary = await filesystem.existsAsync(applicationFolderPath);
+    const existsDomainLibrary = await filesystem.existsAsync(domainFolderPath);
+    const existsInfrastructureLibrary = await filesystem.existsAsync(infrastructureFolderPath);
+    
+      
+    if(existsDomainLibrary && existsInfrastructureLibrary) { 
+      spinner.stop();
+      spinner.start();
+      spinner.text = 'Adding domain project references...'
+
+      try {
+        await toolbox.system.run(
+          `cd ${domainFolderPath} && dotnet add reference ../${coffeeCliArchitecture.infrastructure}`, 
+          { trim: true}
+        );
+  
+        spinner.succeed();
+      }
+      catch(e) {
+        spinner.fail('Failed to add domain project references');
+      }
+    }
+
+    if(existsApplicationLibrary && existsDomainLibrary) {
+      spinner.stop();
+      spinner.start();
+      spinner.text = 'Adding application project references...'
+
+      try {
+        await toolbox.system.run(
+          `cd ${applicationFolderPath} && dotnet add reference ../${coffeeCliArchitecture.domain}`, 
+          { trim: true}
+        );
+  
+        spinner.succeed();
+      }
+      catch(e) {
+        spinner.fail('Failed to add application project references');
+      }
+    }
+
+    if(existsWebapiLibrary && applicationFolderPath) {
+      spinner.stop();
+      spinner.start();
+      spinner.text = 'Adding webapi project references...'
+
+      try {
+        await toolbox.system.run(
+          `cd ${webapiFolderPath} && dotnet add reference ../${coffeeCliArchitecture.application}`, 
+          { trim: true}
+        );
+
+        if(existsDomainLibrary) {
+          await toolbox.system.run(
+            `cd ${webapiFolderPath} && dotnet add reference ../${coffeeCliArchitecture.domain}`, 
+            { trim: true}
+          );
+        }
+  
+        spinner.succeed();
+      }
+      catch(e) {
+        spinner.fail('Failed to add webapi project references');
+      }
+      
+    }
+   
+  }
+
+  async function _installDotnetCorePackages(projectFolderName: string) {
+    const spinner = print.spin()
+
+    spinner.text = 'Checking project configurations...'
+
+    const projectConfig = await filesystem.readAsync(
+        filesystem.path(filesystem.cwd(), projectFolderName, config.project.configFileName)
+    );
+  
+    if (!projectConfig) {
+        spinner.fail(`Coudn´t find the ${config.project.configFileName} file`)
+        return;
+    }
+
+
+    // Get project configurations from 'coffee-cli.json'
+    const coffeeCliArchitecture = JSON.parse(projectConfig).architecture;
+
+    const webapiFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.webapi
+    );
+
+    const applicationFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.application
+    );
+
+    const infrastructureFolderPath = filesystem.path(
+      projectFolderName, 
+      coffeeCliArchitecture.infrastructure
+    );
+
+    if(await filesystem.existsAsync(webapiFolderPath)) {
+      spinner.text = 'Installing WebApi packages...';
+
+      try {
+        await toolbox.system.run(
+          `cd ${webapiFolderPath} && dotnet restore`,
+          {
+            trim: true
+          }
+        )
+      }
+      catch(e) {
+        // do nothing
+      }
+    }
+    
+    if(await filesystem.existsAsync(applicationFolderPath)) {
+      spinner.text = 'Installing Application packages...';
+
+      try {
+        await toolbox.system.run(
+          `cd ${applicationFolderPath} && dotnet restore`,
+          {
+            trim: true
+          }
+        )
+      }
+      catch(e) {
+        // do nothing
+      }
+    }
+
+    if(await filesystem.existsAsync(infrastructureFolderPath)) {
+      spinner.text = 'Installing Infrastructure packages...';
+
+      try {
+        await toolbox.system.run(
+          `cd ${infrastructureFolderPath} && dotnet restore`,
+          {
+            trim: true
+          }
+        )
+      }
+      catch(e) {
+        // do nothing
+      }
+    }
+    
+    spinner.succeed();
+  }
+
+  function _webapiFiles(projectName: string, libraryName: string) {
+    return [
       {
         templatePathName: 'project-config.csproj.ts.ejs',
-        templatePathTarget: `${webapiFolderName}.csproj`,
+        templatePathTarget: `${libraryName}.csproj`,
         props: { projectName }
       },
       {
@@ -162,22 +600,56 @@ module.exports = (toolbox: GluegunToolbox) => {
       },
        
     ];
+  }
 
-    for (let index = 0; index < filesToCreate.length; index++) {
-      const fileToCreate = filesToCreate[index];
-      
-      await generate({
-        template: `generator/dotnetCore/project/webapi/${fileToCreate.templatePathName}`,
-        target: filesystem.path(
-          projectFolderName, 
-          webapiFolderName, 
-          fileToCreate.templatePathTarget
-        ),
-        props: fileToCreate.props
-      });
-    }
-    
-    spinner.succeed();
+  function _applicationFiles(projectName: string, libraryName: string) {
+    return [
+      {
+        templatePathName: 'project-config.csproj.ts.ejs',
+        templatePathTarget: `${libraryName}.csproj`,
+        props: { projectName }
+      },
+      {
+        templatePathName: 'ApplicationException.cs.ts.ejs',
+        templatePathTarget: 'ApplicationException.cs',
+        props: { projectName }
+      },
+      {
+        templatePathName: 'Outputs/ErrorOutput.cs.ts.ejs',
+        templatePathTarget: 'Outputs/ErrorOutput.cs',
+        props: { projectName }
+      }
+    ];
+  }
+
+  function _domainFiles(projectName: string, libraryName: string) {
+    return [
+      {
+        templatePathName: 'project-config.csproj.ts.ejs',
+        templatePathTarget: `${libraryName}.csproj`,
+        props: { projectName }
+      },
+      {
+        templatePathName: 'DomainException.cs.ts.ejs',
+        templatePathTarget: 'DomainException.cs',
+        props: { projectName }
+      }
+    ];
+  }
+
+  function _infrastructureFiles(projectName: string, libraryName: string) {
+    return [
+      {
+        templatePathName: 'project-config.csproj.ts.ejs',
+        templatePathTarget: `${libraryName}.csproj`,
+        props: { projectName }
+      },
+      {
+        templatePathName: 'InfrastructureException.cs.ts.ejs',
+        templatePathTarget: 'InfrastructureException.cs',
+        props: { projectName }
+      }
+    ];
   }
 
 }
