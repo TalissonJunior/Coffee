@@ -4,7 +4,7 @@ module.exports = {
   name: 'generate',
   alias: ['g'],
   run: async (toolbox: GluegunToolbox) => {
-    const { print, parameters, usecase, repository } = toolbox
+    const { print, parameters, usecase, repository, dotnetcore } = toolbox
 
     if (parameters.first === 'usecase' || parameters.first === 'u') {
       await usecase.create()
@@ -12,7 +12,12 @@ module.exports = {
     } else if (parameters.first === 'repository' || parameters.first === 'r') {
       await repository.create()
       return
-    } else {
+      
+    } else if (parameters.first === 'migrations' || parameters.first === 'm') {
+      await dotnetcore.updateMigrations();
+      return
+      
+    }else {
       print.info('Command not found.')
       return
     }

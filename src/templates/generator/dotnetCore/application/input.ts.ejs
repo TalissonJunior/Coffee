@@ -9,7 +9,7 @@ namespace <%= props.projectName %>.Application.Inputs
         <% props.classTable.properties.forEach(function(property, index){ %>
             <% if(property.isForeignKey) { %>
                 public <%= property.foreign.table %>Input<% if(!property.isRequired) { %>? <% } %> <%= property.foreign.classProperty %> { get; set; }
-            <% if (property.type == 'enum') { %>
+            <% } if (property.type == 'enum') { %>
                 public <%= property.enumType.type %><% if(!property.isRequired) { %>? <% } %> <%= property.name %> { get; set; }
             <% } else { %>
                 public <%= property.type %><% if(!property.isRequired && (property.type == 'DateTime' || property.type == 'Guid')) { %>? <% } %> <%= property.name %> { get; set; }

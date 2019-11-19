@@ -24,7 +24,7 @@ namespace <%= props.projectName %>.WebApi.UseCases.<%= props.usecaseName %>
         }
 
         /// <summary>
-        /// 
+        /// Gets a specific <%= props.classTable.name %> by unique id
         /// </summary>
         <% if (props.methodType == 'GET' && props.isList) { %> 
         /// <param name="sieveModel"></param>
@@ -32,7 +32,10 @@ namespace <%= props.projectName %>.WebApi.UseCases.<%= props.usecaseName %>
         <% if (props.methodType == 'PUT' || props.methodType == 'POST') { %> 
         /// <param name="input"></param>
         <% } %>
-        /// <returns></returns>
+        /// <response code="200"><%= props.classTable.name %> retrieved</response>
+        /// <response code="404"><%= props.classTable.name %> not found</response>
+        /// <response code="500">Oops! Can't find your <%= props.classTable.name %> right now</response>
+        /// <returns><%= props.classTable.name %></returns>
         [Http<%= props.methodType.charAt(0).toUpperCase() + props.methodType.slice(1).toLowerCase() %>   <% if (props.route) { %> ("<%= props.route %>")  <% } %>]
         public async Task<IActionResult> <%= props.usecaseName %>(
             <% if (props.methodType == 'GET' && props.isList) { %> 

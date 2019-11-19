@@ -38,6 +38,14 @@ namespace <%= props.projectName %>.WebApi
 
             services.AddControllers();
             
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+            });
+
             services.AddMvc(options =>
             {
                 options.Filters.Add(typeof(DomainExceptionFilter));
@@ -64,6 +72,9 @@ namespace <%= props.projectName %>.WebApi
                 });
 
                 options.CustomSchemaIds(x => x.FullName);
+                
+                var filePath = Path.Combine(System.AppContext.BaseDirectory, "Swagger.xml");
+                options.IncludeXmlComments(filePath);
             });
 
             // Register Directory Browsing
@@ -85,6 +96,8 @@ namespace <%= props.projectName %>.WebApi
             }
 
             app.UseHttpsRedirection();
+            
+            app.UseCors("CorsPolicy");
 
             app.UseRouting();
             
