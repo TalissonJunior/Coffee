@@ -28,18 +28,11 @@ namespace <%= props.projectName %>.Infrastructure.EntityFrameworkDataAccess
                 .HasForeignKey(e => e.<%= middleTable.firstMiddleTablePropety.name %>);
 
             modelBuilder.Entity<<%= middleTable.name %>>()
-                .HasOne<<%= middleTable.secondMiddleTablePropety.foreign.classProperty %>>(e => e.<%= middleTable.secondMiddleTablePropety.foreign.table %>)
+                .HasOne<<%= middleTable.secondMiddleTablePropety.foreign.table %>>(e => e.<%= middleTable.secondMiddleTablePropety.foreign.classProperty %>)
                 .WithMany(e => e.<%= middleTable.name %>s)
                 .HasForeignKey(e => e.<%= middleTable.secondMiddleTablePropety.name %>);
             <% }); %>
 
-            // set all decimal types with (10,2) precision
-            foreach (var property in modelBuilder.Model.GetEntityTypes()
-            .SelectMany(t => t.GetProperties())
-            .Where(p => p.ClrType == typeof(decimal)))
-            {
-                property.Relational().ColumnType = "decimal(10, 2)";
-            }
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -69,16 +69,18 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
                             <% } %>
                         <% }); %>
 
-                        <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
-                                ,typeof(Entities.<%= tableRelation.name %>)
-                    
-                            <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
-                                ,typeof(Entities.<%= tableRelation.firstMiddleTablePropety.foreign.table %>)
-                            <% } else { %> 
-                                ,typeof(Entities.<%= tableRelation.secondMiddleTablePropety.foreign.table %>)
-                            <% } %>
-            
-                        <% }); %>
+                        <% if (props.classTable.hasRelations) { %> 
+                            <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
+                                    ,typeof(Entities.<%= tableRelation.name %>)
+                        
+                                <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
+                                    ,typeof(Entities.<%= tableRelation.firstMiddleTablePropety.foreign.table %>)
+                                <% } else { %> 
+                                    ,typeof(Entities.<%= tableRelation.secondMiddleTablePropety.foreign.table %>)
+                                <% } %>
+                
+                            <% }); %>
+                        <% } %>
                     },
                     (results) =>
                     {

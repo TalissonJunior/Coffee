@@ -4,15 +4,15 @@ import { ProjectType } from '../enums/projectType'
 module.exports = {
   name: 'designer',
   run: async (toolbox: GluegunToolbox) => {
-    const { print, project, designer, prompt, dotnetcore } = toolbox
+    const { print, dependencies, designer, prompt, dotnetcore } = toolbox
 
-    const isInsideDotnetCore = await project.isInsideDotnetCore()
+    const isInsideDotnetCore = await dependencies.isInsideDotnetCore()
 
     if (!isInsideDotnetCore) {
-      return
+      return;
     }
 
-    const allInstalled = await project.checkDependencies(ProjectType.dotnetCore)
+    const allInstalled = await dependencies.checkDependencies(ProjectType.dotnetCore)
 
     if (allInstalled) {
       await designer.start()

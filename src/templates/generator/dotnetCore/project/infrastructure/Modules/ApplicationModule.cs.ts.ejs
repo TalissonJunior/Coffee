@@ -1,0 +1,17 @@
+﻿using Autofac;
+using <%= props.projectName %>.Application;
+
+namespace <%= props.projectName %>.Infrastructure.Modules
+{
+    public class ApplicationModule : Module
+    {
+        protected override void Load(ContainerBuilder builder)
+        {
+            //
+            // Register all Types in <%= props.projectName %>.Application
+            builder.RegisterAssemblyTypes(typeof(ApplicationException).Assembly)
+                .AsImplementedInterfaces()
+                .InstancePerLifetimeScope();
+        }
+    }
+}

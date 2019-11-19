@@ -1,0 +1,21 @@
+﻿using Autofac;
+using System;
+
+namespace <%= props.projectName %>.Infrastructure.Modules
+{
+    public class WebApiModule : Module
+    {
+        protected override void Load(ContainerBuilder builder)
+        {
+            //
+            // Register all Types in <%= props.projectName %>.WebApi
+            //
+
+            Type startup = Type.GetType("<%= props.projectName %>.WebApi.Startup, <%= props.projectName %>.WebApi");
+
+            builder.RegisterAssemblyTypes(startup.Assembly)
+                .AsSelf()
+                .InstancePerLifetimeScope();
+        }
+    }
+}

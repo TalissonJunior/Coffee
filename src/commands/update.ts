@@ -12,10 +12,9 @@ module.exports = {
     spinner.text = 'Updating project...'
 
     spinner.stop()
-    await dotnetcore.updateEntitiesAndContext()
-    await dotnetcore.updateDomains()
-    await dotnetcore.checkConnectionString()
-    await dotnetcore.updateMigrations()
+    await dotnetcore.updateEntitiesAndContext();
+    await dotnetcore.updateDomains();
+    await dotnetcore.updateMigrations();
 
     print.newline()
     print.info(`${print.checkmark} Project was successfully updated`)

@@ -82,6 +82,8 @@ module.exports = (toolbox: GluegunToolbox) => {
     await _createDotnetCoreSolution(kebabCaseName);
 
     await _installDotnetCorePackages(kebabCaseName);
+
+    return projectFolder;
   }
 
   async function _createDotnetCoreWebApiLibrary(projectFolderName: string) {
@@ -369,21 +371,26 @@ module.exports = (toolbox: GluegunToolbox) => {
     const existsInfrastructureLibrary = await filesystem.existsAsync(infrastructureFolderPath);
     
       
-    if(existsDomainLibrary && existsInfrastructureLibrary) { 
+    if(existsInfrastructureLibrary && existsDomainLibrary) { 
       spinner.stop();
       spinner.start();
-      spinner.text = 'Adding domain project references...'
+      spinner.text = 'Adding infrastructure project references...'
 
       try {
         await toolbox.system.run(
-          `cd ${domainFolderPath} && dotnet add reference ../${coffeeCliArchitecture.infrastructure}`, 
+          `cd ${infrastructureFolderPath} && dotnet add reference ../${coffeeCliArchitecture.domain}`, 
+          { trim: true}
+        );
+
+        await toolbox.system.run(
+          `cd ${infrastructureFolderPath} && dotnet add reference ../${coffeeCliArchitecture.application}`, 
           { trim: true}
         );
   
         spinner.succeed();
       }
       catch(e) {
-        spinner.fail('Failed to add domain project references');
+        spinner.fail('Failed to add infrastructure project references');
       }
     }
 
@@ -416,9 +423,9 @@ module.exports = (toolbox: GluegunToolbox) => {
           { trim: true}
         );
 
-        if(existsDomainLibrary) {
+        if(existsInfrastructureLibrary) {
           await toolbox.system.run(
-            `cd ${webapiFolderPath} && dotnet add reference ../${coffeeCliArchitecture.domain}`, 
+            `cd ${webapiFolderPath} && dotnet add reference ../${coffeeCliArchitecture.infrastructure}`, 
             { trim: true}
           );
         }
@@ -535,6 +542,11 @@ module.exports = (toolbox: GluegunToolbox) => {
         props: { projectName }
       },
       {
+        templatePathName: 'autofac.json.ts.ejs',
+        templatePathTarget: 'autofac.json',
+        props: { projectName }
+      },
+      {
         templatePathName: 'appsettings.json.ts.ejs',
         templatePathTarget: 'appsettings.json',
         props: { 
@@ -647,6 +659,36 @@ module.exports = (toolbox: GluegunToolbox) => {
       {
         templatePathName: 'InfrastructureException.cs.ts.ejs',
         templatePathTarget: 'InfrastructureException.cs',
+        props: { projectName }
+      },
+      {
+        templatePathName: 'Modules/ApplicationModule.cs.ts.ejs',
+        templatePathTarget: 'Modules/ApplicationModule.cs',
+        props: { projectName }
+      },
+      {
+        templatePathName: 'Modules/WebApiModule.cs.ts.ejs',
+        templatePathTarget: 'Modules/WebApiModule.cs',
+        props: { projectName }
+      },
+      {
+        templatePathName: 'DapperDataAccess/Repositories/BaseRepository.cs.ts.ejs',
+        templatePathTarget: 'DapperDataAccess/Repositories/BaseRepository.cs',
+        props: { projectName }
+      },
+      {
+        templatePathName: 'DapperDataAccess/Module.cs.ts.ejs',
+        templatePathTarget: 'DapperDataAccess/Module.cs',
+        props: { projectName }
+      },
+      {
+        templatePathName: 'EntityFrameworkDataAccess/Repositories/BaseRepository.cs.ts.ejs',
+        templatePathTarget: 'EntityFrameworkDataAccess/Repositories/BaseRepository.cs',
+        props: { projectName }
+      },
+      {
+        templatePathName: 'EntityFrameworkDataAccess/Module.cs.ts.ejs',
+        templatePathTarget: 'EntityFrameworkDataAccess/Module.cs',
         props: { projectName }
       }
     ];

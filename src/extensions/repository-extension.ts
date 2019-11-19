@@ -18,7 +18,7 @@ module.exports = (toolbox: GluegunToolbox) => {
 
     spinner.text = 'Checking project configurations...'
 
-    const isInsideDotnetCore = await toolbox.project.isInsideDotnetCore()
+    const isInsideDotnetCore = await toolbox.dependencies.isInsideDotnetCore()
 
     if (!isInsideDotnetCore) {
       spinner.stop()
@@ -179,6 +179,23 @@ module.exports = (toolbox: GluegunToolbox) => {
     }
     // ReadOnly
     else {
+      
+      const baseRepositoryPath = filesystem.path(
+        repositoriesInfraDapperFolderPath, 
+        'BaseRepository.cs'
+      );
+      
+      // Create Base Repository if doesn´t exists
+      if(!await filesystem.existsAsync(baseRepositoryPath)) {
+        await generate({
+          template: 'generator/dotnetCore/infrastructure/DapperDataAccess/Repositories/BaseRepository.cs.ts.ejs',
+          target: baseRepositoryPath,
+          props: {
+            projectName: JSON.parse(projectConfig).architecture.name
+          }
+        })
+      }
+
       // Create interface
       await generate({
         template: 'generator/dotnetCore/repository/IReadOnlyRepository.ts.ejs',

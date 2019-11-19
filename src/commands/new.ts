@@ -135,15 +135,30 @@ module.exports = {
         spinner.stop()
 
         print.newline()
-        print.info(
-          `${print.checkmark} Successfully created ${strings.kebabCase(
+        spinner.succeed(
+          `Successfully created ${strings.kebabCase(
             backendProjectName
           )}!`
         )
-        print.info(`At ${path}`)
-        print.newline()
+        print.info(`At ${path}`);
+        print.newline();
+        print.info('Next:');
         print.info(`  cd ${strings.kebabCase(backendProjectName)}`)
-        print.info(`  dotnet run`)
+        print.info(`  coffee designer`);
+        print.info(`  coffee update`);
+
+        
+        print.newline();
+        print.info('Information: ');
+        print.newline();
+        print.info('Since coffee uses the .NET Core 3.0, we advice you to have the');
+        print.info('latest version of Visual Studio 2019 community.');
+        print.info('Click on the link below to learn how to update your Visual Studio Community 2019 ');
+        print.info('Link: https://docs.microsoft.com/en-us/visualstudio/install/update-visual-studio?view=vs-2019');
+        print.newline();
+        print.info("Or use Visual Studio Code to code.");
+        print.info("Link: https://code.visualstudio.com/");
+        
         print.newline()
       } else if (type === ProjectType.angular) {
         spinner.text = `Creating ${strings.kebabCase(frontendProjectName)}...`
@@ -159,7 +174,7 @@ module.exports = {
           )}!`
         )
         print.info(`At ${path}`)
-        print.newline()
+        print.newline();
         print.info(`  cd ${strings.kebabCase(frontendProjectName)}`)
         print.info(`  npm install`)
         print.info(`  ng serve`)
@@ -174,17 +189,18 @@ module.exports = {
 
         spinner.stop()
 
-        print.newline()
-        print.info(
-          `${print.checkmark} Successfully created ${strings.kebabCase(
-            backendProjectName
-          )} and ${strings.kebabCase(frontendProjectName)}!`
-        )
+        print.newline();
+        spinner.succeed(`${print.checkmark} Successfully created ${strings.kebabCase(
+          backendProjectName
+        )}`)
         print.info(`At ${pathBackend}`)
         print.info(`At ${pathFrontend}`)
-        print.newline()
+        print.newline();
+        print.newline();
+        print.info('next:');
         print.info(`  cd ${strings.kebabCase(backendProjectName)}`)
-        print.info(`  dotnet run`)
+        print.info(`  coffee designer`);
+        print.info(`  coffee update`);
         print.newline()
         print.info(`  cd ${strings.kebabCase(frontendProjectName)}`)
         print.info(`  npm install`)

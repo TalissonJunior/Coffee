@@ -19,7 +19,7 @@ module.exports = (toolbox: GluegunToolbox) => {
 
     spinner.text = 'Checking project configurations...'
 
-    const isInsideDotnetCore = await toolbox.project.isInsideDotnetCore()
+    const isInsideDotnetCore = await toolbox.dependencies.isInsideDotnetCore()
 
     if (!isInsideDotnetCore) {
       spinner.stop()
@@ -432,6 +432,23 @@ module.exports = (toolbox: GluegunToolbox) => {
     spinner.succeed('Created: ' + applicationUsecaseFilePath)
 
     spinner.start()
+
+    const errorCodeConstantPath = filesystem.path(
+      webapiFolderPath, 
+      'Constants', 
+      'ErrorCode.cs'
+    );
+    
+    // Create constants if doesn´t exists
+    if(!await filesystem.existsAsync(errorCodeConstantPath)) {
+      await generate({
+        template: 'generator/dotnetCore/webapi/Constants/ErrorCode.cs.ts.ejs',
+        target: errorCodeConstantPath,
+        props: {
+          projectName: JSON.parse(projectConfig).architecture.name
+        }
+      })
+    }
 
     const webapiUseCaseFolder = filesystem.path(
       useCasesWebApiFolderPath,

@@ -9,10 +9,10 @@ namespace <%= props.projectName %>.Infrastructure.DapperDataAccess.Repositories
 
         <% props.classTable.properties.forEach(function(property, index){ %>
             <% if(index < props.classTable.properties.length - 1 && foreignProperties.length == 0) { %>
-                " <%= props.classTable.tableName %>.<%= property.columnName %> AS <%= property.name %> " +
+                " <%= props.classTable.tableName %>.<%= property.columnName %> AS <%= property.name %>, " +
             <% } else { %>
                 
-            " <%= props.classTable.tableName %>.<%= property.columnName %> AS <%= property.name %>, " +
+            " <%= props.classTable.tableName %>.<%= property.columnName %> AS <%= property.name %> " +
             <% } %>
         <% }); %>
 

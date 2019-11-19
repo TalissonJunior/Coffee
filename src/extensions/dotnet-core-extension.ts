@@ -412,6 +412,15 @@ module.exports = (toolbox: GluegunToolbox) => {
     // Ensure that server assets is created
     await filesystem.dirAsync(entitiesFolderPath)
 
+    // Generate Base entity
+    await generate({
+      template: 'generator/dotnetCore/infrastructure/Entities/BaseEntity.cs.ts.ejs',
+      target: filesystem.path(entitiesFolderPath, 'BaseEntity.cs'),
+      props: {
+        projectName: JSON.parse(projectConfig).architecture.name
+      }
+    })
+
     for (let index = 0; index < classTables.length; index++) {
       const classTable = classTables[index]
 

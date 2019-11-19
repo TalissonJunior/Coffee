@@ -1,0 +1,25 @@
+﻿{
+  "defaultAssembly": "<%= props.projectName %>.Infrastructure",
+  "modules": [
+    {
+      "type": "<%= props.projectName %>.Infrastructure.Modules.WebApiModule",
+      "properties": {}
+    },
+    {
+      "type": "<%= props.projectName %>.Infrastructure.Modules.ApplicationModule",
+      "properties": {}
+    },
+    {
+      "type": "<%= props.projectName %>.Infrastructure.EntityFrameworkDataAccess.Module",
+      "properties": {
+        "ConnectionString": ""
+      }
+    },
+    {
+      "type": "<%= props.projectName %>.Infrastructure.DapperDataAccess.Module",
+      "properties": {
+        "ConnectionString": ""
+      }
+    }
+  ]
+}

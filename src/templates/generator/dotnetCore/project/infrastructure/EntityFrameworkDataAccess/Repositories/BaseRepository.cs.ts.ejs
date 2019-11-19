@@ -1,0 +1,23 @@
+﻿using AutoMapper;
+using <%= props.projectName %>.Infrastructure.Mappings;
+
+namespace <%= props.projectName %>.Infrastructure.EntityFrameworkDataAccess.Repositories
+{
+    public class BaseRepository
+    {
+        public readonly IMapper iMapper;
+        public BaseRepository()
+        {
+            if (iMapper == null)
+            {
+                var config = new MapperConfiguration(cfg =>
+                {
+                    cfg.AddProfile<MappingProfile>();
+                });
+
+                iMapper = config.CreateMapper();
+            }
+
+        }
+    }
+}
