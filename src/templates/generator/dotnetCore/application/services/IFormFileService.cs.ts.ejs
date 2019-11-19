@@ -1,0 +1,11 @@
+﻿using Microsoft.AspNetCore.Http;
+using <%= props.projectName %>.Domain.FileUpload;
+
+namespace <%= props.projectName %>.Application.Services
+{
+    public interface IFormFileService
+    {
+        FileUpload Upload(IFormFile formFile,
+           string absolutePath);
+    }
+}

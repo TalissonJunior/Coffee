@@ -354,6 +354,56 @@ module.exports = (toolbox: GluegunToolbox) => {
           }
         }
       }
+
+      // Create filupload service if needed
+      const servicesFolderPath = filesystem.path(
+        applicationFolderPath,
+        'Services'
+      )
+
+      const fileUploadServiceInterface = filesystem.path(
+        servicesFolderPath,
+        'IFormFileService.cs'
+      )
+
+      const fileUploadService = filesystem.path(
+        servicesFolderPath,
+        'FormFileService.cs'
+      )
+  
+      if (!(await filesystem.existsAsync(fileUploadServiceInterface))) {
+        await generate({
+          template: 'generator/dotnetCore/application/services/IFormFileService.cs.ts.ejs',
+          target: fileUploadServiceInterface,
+          props: {
+            projectName: JSON.parse(projectConfig).architecture.name
+          }
+        })
+
+        await generate({
+          template: 'generator/dotnetCore/application/services/FormFileService.cs.ts.ejs',
+          target: fileUploadService,
+          props: {
+            projectName: JSON.parse(projectConfig).architecture.name
+          }
+        })
+
+        // Format services input
+        await toolbox.system.run(
+          'prettier --print-width 80 --no-semi --single-quote ' +
+            ' --trailing-comma --write ' +
+            `${applicationFolderPath}/Services/**.cs`
+        )
+
+        spinner.stop()
+        print.newline()
+
+        spinner.succeed('Created: ' + fileUploadServiceInterface)
+        spinner.succeed('Created: ' + fileUploadService)
+
+        spinner.start()
+      }
+      
     }
 
     // Create application usecase

@@ -45,7 +45,7 @@ namespace <%= props.projectName %>.Infrastructure.Mappings
                             <% }); %>
                                     
                             
-                            <% if(classTable.hasRelations) { %>
+                            <% if(classTable.hasRelations && classTable.name != 'FileUpload') { %>
                                 
                                 <% classTable.tableRelations.forEach(function(tableRelation){ %>
                                     <% if (tableRelation.firstMiddleTablePropety.foreign.table != classTable.name) { %> 

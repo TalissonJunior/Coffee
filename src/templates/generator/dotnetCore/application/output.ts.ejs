@@ -13,12 +13,19 @@ namespace <%= props.projectName %>.Application.Outputs
 
             <% if(property.isForeignKey) { %>
                 public <%= property.foreign.table %>Output <%= property.foreign.classProperty %> { get; set; }
+            <% } else if (property.type == 'enum') { %>
+                public <%= property.enumType.type %> <%= property.name %> { get; set; }
             <% } else { %>
                 public <%= property.type %> <%= property.name %> { get; set; }
             <% } %>
         <% }); %>
 
-        <% if (props.classTable.hasRelations) { %> 
+        <% if (props.classTable.name == 'FileUpload') { %> 
+            [Sieve(CanFilter = true, CanSort = true)]
+            public string FilePath { get; private set; }
+        <% } %>
+
+        <% if (props.classTable.hasRelations && props.classTable.name != 'FileUpload') { %> 
             <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
                 [Sieve(CanFilter = false, CanSort = false)]
 
@@ -43,7 +50,7 @@ namespace <%= props.projectName %>.Application.Outputs
                 <% } %>
             <% }); %>
 
-            <% if (props.classTable.hasRelations) { %> 
+            <% if (props.classTable.hasRelations && props.classTable.name != 'FileUpload') { %> 
                 <% props.classTable.tableRelations.forEach(function(tableRelation) { %>
                     <% if (tableRelation.firstMiddleTablePropety.foreign.table != props.classTable.name) { %> 
                         if (<%= props.classTable.name.charAt(0).toLowerCase() + props.classTable.name.slice(1) %>.<%= tableRelation.firstMiddleTablePropety.foreign.table %>s != null)
@@ -66,5 +73,13 @@ namespace <%= props.projectName %>.Application.Outputs
             <% } %>
            
         }
+
+        <% if (props.classTable.name == 'FileUpload') { %> 
+            public void SetFilePath(string rootPath)
+            {
+                FilePath = Path.Combine(rootPath, $"{Name}{Extension}")
+                    .Replace("\\", "/");
+            }
+        <% } %>
     }
 }

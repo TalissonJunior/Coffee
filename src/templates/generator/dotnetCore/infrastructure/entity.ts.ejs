@@ -18,17 +18,21 @@ namespace <%= props.projectName %>.Infrastructure.Entities
 
             <% if (property.isForeignKey) { %> 
                 public <%= property.foreign.table %> <%= property.foreign.classProperty %> { get; set; }
-            <% } %>
 
-            <% if (property.isForeignKey) { %>
+                
                 [ForeignKey("<%= property.foreign.classProperty %>")] 
             <% } %>
         
             [Column("<%= property.columnName %>")]
             <% if (property.isRequired) { %>
-                [Required] <% } 
-            %>
-            public <%= property.type %> <%= property.name %> { get; set; }
+                [Required] 
+            <% }  %>
+
+            <% if (property.type == 'enum') { %> 
+                public <%= property.enumType.type %> <%= property.name %> { get; set; }
+            <% } else { %>
+                public <%= property.type %> <%= property.name %> { get; set; }
+            <% }  %>
         
         <% } %>
     <% }); %>

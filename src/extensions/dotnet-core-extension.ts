@@ -562,6 +562,31 @@ module.exports = (toolbox: GluegunToolbox) => {
         const folderPath = filesystem.path(domainsFolderPath, classTable.name)
         await filesystem.dirAsync(folderPath)
 
+        // Generate enums if there is any
+        for (let j = 0; j < classTable.properties.length; j++) {
+          const property = classTable.properties[j];
+
+          if(property.type === 'enum') {
+            await generate({
+              template: 'generator/dotnetCore/infrastructure/domain-enum.ts.ejs',
+              target: filesystem.path(folderPath, property.name + '.cs'),
+              props: {
+                classTable: classTable,
+                projectName: JSON.parse(projectConfig).architecture.domain
+              }
+            })
+
+            spinner.stop()
+            print.info(
+              `${print.checkmark} Created: ${filesystem.path(
+                folderPath,
+                property.name + '.cs'
+              )}`
+            )
+            spinner.start()
+          }
+        }
+
         await generate({
           template: 'generator/dotnetCore/infrastructure/domain.ts.ejs',
           target: filesystem.path(folderPath, classTable.name + '.cs'),
